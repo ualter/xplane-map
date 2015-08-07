@@ -5,10 +5,13 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.text.MessageFormat;
 import java.util.Arrays;
 
 public class UDPListener implements Runnable {
 	private PlanesList	list;
+	
+	private MessageFormat message = new MessageFormat("Received from X-Plane: Latitude {0}, Longitude {1}, Altitude {2}");
 
 	public UDPListener(PlanesList list_) {
 		this.list = list_;
@@ -34,6 +37,10 @@ public class UDPListener implements Runnable {
 					this.list.setPlaneLat(IPAddress, lat.floatValue());
 					this.list.setPlaneLon(IPAddress, lon.floatValue());
 					this.list.setPlaneAlt(IPAddress, alt.floatValue());
+					
+					System.out.println(message.format(new Object[]{lat,lon,alt}));
+				} else {
+					System.out.println("Received ident:" + ident);
 				}
 			}
 		} catch (Exception e) {

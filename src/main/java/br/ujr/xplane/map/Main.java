@@ -59,7 +59,7 @@ public class Main {
 
 		public void handle(HttpExchange t) throws IOException {
 			String req = t.getRequestURI().toString();
-			System.out.println("URI=" + req);
+			System.out.println("URI=w" + req);
 
 			if (req.startsWith("/data")) {
 				JSONObject planes = new JSONObject();
@@ -80,6 +80,8 @@ public class Main {
 				os.close();
 			} else if (req.startsWith("/map.js")) {
 				sendFile(t, "map.js");
+			} else if (req.startsWith("/map.css")) {
+				sendFile(t, "map.css");	
 			} else {
 				sendFile(t, "index.html");
 			}
