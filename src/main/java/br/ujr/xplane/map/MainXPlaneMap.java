@@ -10,23 +10,28 @@ import java.net.Socket;
 import java.net.URI;
 
 import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 
-public class Main {
+public class MainXPlaneMap {
+	
+	public static Logger logger = LoggerFactory.getLogger(MainXPlaneMap.class);
+	
 	public static void main(String[] args) throws Exception {
 		PlanesList list = new PlanesList();
 
 		new Thread(new UDPListener(list)).start();
-		System.out.println("Started listening to X-Plane");
+		logger.info("Started listening to X-Plane");
 
 		HttpServer server = HttpServer.create(new InetSocketAddress(8000), 0);
 		server.createContext("/", new MyHandler(list));
 		server.setExecutor(null);
 		server.start();
-		System.out.println("Started the web server");
+		logger.info("Started the web server");
 
 		Socket s = new Socket("google.com", 80);
 		String url = "http://" + s.getLocalAddress().getHostAddress() + ":8000/";
@@ -46,8 +51,8 @@ public class Main {
 				e.printStackTrace();
 			}
 		}
-		System.out.println("Started browser");
-		System.out.println("The map is now visible at address " + url + " on this computer and any device on the same network.");
+		logger.info("Started browser");
+		logger.info("The map is now visible at address " + url + " on this computer and any device on the same network.");
 	}
 
 	static class MyHandler implements HttpHandler {
@@ -59,8 +64,7 @@ public class Main {
 
 		public void handle(HttpExchange t) throws IOException {
 			String req = t.getRequestURI().toString();
-			System.out.println("URI=w" + req);
-
+			
 			if (req.startsWith("/data")) {
 				JSONObject planes = new JSONObject();
 				for (String ip : this.planesList.getLatMap().keySet()) {
