@@ -11,7 +11,7 @@ var polyOptions = {
 	strokeWeight: 2
 };
 var markerOptions = { 
-	icon: {
+	/*icon: {
 		path: "M250.2,59.002c11.001,0,20.176,9.165,20.176,20.777v122.24l171.12,95.954v42.779l-171.12-49.501v89.227l40.337," + 
 			"29.946v35.446l-60.52-20.18-60.502,20.166v-35.45l40.341-29.946v-89.227l-171.14,49.51v-42.779l171.14-95.954v-" +
 			"122.24c0-11.612,9.15-20.777,20.16-20.777z",
@@ -19,7 +19,17 @@ var markerOptions = {
 		fillOpacity: 1,
 		anchor: new google.maps.Point(250,250),
 		strokeWeight: 0.5
-	}
+	}*/
+	icon: {
+		path: "M362.985,430.724l-10.248,51.234l62.332,57.969l-3.293,26.145 l-71.345-23.599l-2.001,13.069l-2.057-13.529l-71.278," + 
+		      "22.928l-5.762-23.984l64.097-59.271l-8.913-51.359l0.858-114.43 l-21.945-11.338l-189.358," + "" +
+		      "88.76l-1.18-32.262l213.344-180.08l0.875-107.436l7.973-32.005l7.642-12.054l7.377-3.958l9.238," + 
+		      "3.65 l6.367,14.925l7.369,30.363v106.375l211.592,182.082l-1.496,32.247l-188.479-90.61l-21.616,10.087l-0.094,115.684",
+		scale: 0.08,
+		fillOpacity: 1,
+		anchor: new google.maps.Point(250,250),
+		strokeWeight: 0.5
+	}	
 };
 var planeList = {};
 var refreshControlPanel = false;
@@ -28,6 +38,7 @@ var colors = ["#26764E","#F08526","#9CFF54","#721B49","#A7D8F8","#2AFDBC","#FBE8
 "#1C271D","#632E85","#1E5F7A","#D8B2F5","#D307A2","#F391B5","#F180F5","#3A1E2E","#AE7707","#3E3D0E","#6AB06E"];
 var color_index = 0;
 var navMap;
+
 
 $.ajaxSetup({ cache: false }); //else IE caches the data request...
 
@@ -71,6 +82,9 @@ function initialize() {
 			northEast = map.getProjection().fromPointToLatLng(new google.maps.Point(east, north));
 			southWest = map.getProjection().fromPointToLatLng(new google.maps.Point(west, south));
 			
+			//http://x-plane-map.fouc.net/nav.php?north=-24.5271%20&south=-25.7999%20&east=-46.4063%20&west=-47.8125
+			//console.log();
+			
 	      return ['http://x-plane-map.fouc.net/nav.php?north=',
 	          northEast.lat().toFixed(4),
 	          '&south=', southWest.lat().toFixed(4),
@@ -85,6 +99,48 @@ function initialize() {
 
 	  map.overlayMapTypes.push(navMap);
 	  navMap.setOpacity(0);
+	  
+	  // FlightPlane
+	  var sbsp = new google.maps.LatLng(-23.62611, -46.656387);
+	  var w1 = new google.maps.LatLng(-23.545668, -45.339333);
+	  var w2 = new google.maps.LatLng(-23.142668, -43.52017);
+	  var sbrj = new google.maps.LatLng(-22.91, -43.162777);
+	  var flightPlanCoordinates = [sbsp, w1, w2, sbrj];
+	  var flightPath = new google.maps.Polyline({
+	    path: flightPlanCoordinates,
+	    geodesic: true,
+	    strokeColor: '#0000FF',
+	    strokeOpacity: 0.5,
+	    strokeWeight: 6
+	  });
+	  flightPath.setMap(map);
+	  
+	  var m1 = new google.maps.Marker({
+	      position: sbsp,
+	      animation: google.maps.Animation.DROP,
+	      title: 'SBSP'
+	  });
+	  m1.setMap(map);
+	  var mw1 = new google.maps.Marker({
+	      position: w1,
+	      animation: google.maps.Animation.DROP,
+	      title: 'LODOG'
+	  });
+	  mw1.setMap(map);
+	  var mw2 = new google.maps.Marker({
+	      position: w2,
+	      animation: google.maps.Animation.DROP,
+	      title: 'XOKIX'
+	  });
+	  mw2.setMap(map);
+	  var m2 = new google.maps.Marker({
+	      position: sbrj,
+	      animation: google.maps.Animation.DROP,
+	      title: 'SBRJ'
+	  });
+	  m2.setMap(map);
+	  
+	  map.panTo(sbsp);
 }
 
 function updatePosition() {
