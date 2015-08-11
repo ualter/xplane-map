@@ -6,25 +6,44 @@ html, body, #map-canvas, #map-canvas-wrapper {
 }
 
 #map-canvas-wrapper {
-	margin-right: 0px;
-	position: relative;
+	/* margin-right: 0px;
+	position: relative; */
+}
+
+#panel-fp {
+	position: absolute;
+	top: 60px;
+	left: 5%;
+	z-index: 5;
+	padding: 5px;
+	border-radius: 5px;
+	box-shadow: 5px 5px 5px 0px rgba(50, 50, 50, 0.75);
+	font-family: Verdana, Arial, sans-serif;
+	text-decoration: none;
+	border: 2px solid #595959;
+	background-color: #50000E;
+	color: #fff;
+	width: 30%;
+	display: none;
+	text-align: center;
+	font-size: 15px;
+	font-weight: 400;
 }
 
 #errorBox {
 	position: absolute;
-	top: 5px;
-	left: 30%;
+	top: 91%;
+	left: 2%;
 	z-index: 5;
 	padding: 5px;
-	border: 1px solid #999;
-	border-radius: 2px;
-	box-shadow: rgba(0, 0, 0, 0.298039) 0px 1px 4px -1px;
-	font-family: Roboto, Arial, sans-serif;
+	border-radius: 5px;
+	box-shadow: 5px 5px 5px 0px rgba(50, 50, 50, 0.75);
+	font-family: Verdana, Arial, sans-serif;
 	text-decoration: none;
-	border: 1px solid #ff0000;
-	background-color: #ff5b5b;
+	border: 2px solid #595959;
+	background-color: #50000E;
 	color: #fff;
-	width: 40%;
+	width: 30%;
 	display: none;
 	text-align: center;
 	font-size: 15px;
@@ -53,105 +72,28 @@ html, body, #map-canvas, #map-canvas-wrapper {
 	margin: 0px 15px 5px 15px;
 }
 
-#panel-button, #navaids-button {
+
+#flightplan-button {
 	position: absolute;
-	bottom: 20px;
-	font-family: Roboto, Arial, sans-serif;
+	top: 28px;
+	left: 5%;
+	font-family: Verdana, Arial, sans-serif;
 	text-decoration: none;
 	border: 1px solid #999;
-	font-size: 13px;
-	font-weight: 300;
+	font-size: 12px;
+	font-weight: 500;
 	background-color: #fff;
 	border-radius: 2px;
-	padding: 3px;
+	padding: 5px;
 	cursor: pointer;
+	border-radius: 5px;
 }
-
-#panel-button {
-	right: 15px;
+#flightplan-button:hover, #navaids-button:hover {
+	background-color: #000;
+	color: #fff;
 }
-
-#navaids-button {
-	right: 140px;
-}
-
-#panel-button:hover, #navaids-button:hover {
-	background-color: #ccc;
-}
-
-#panel-button:active, , #navaids-button:active {
+#flightplan-button:active, , #navaids-button:active {
 	background-color: #7bbcfc;
-}
-
-#planesTable {
-	border-collapse: collapse;
-	border: 0;
-	border-radius: 2px;
-	table-layout: fixed;
-	width: 300px;
-}
-
-#planesTable input[type=radio] {
-	display: none;
-}
-
-.planeRow {
-	height: 35px;
-	overflow: hidden;
-}
-
-#planeNameInput {
-	width: 140px;
-}
-
-#planesTable tr:nth-child(odd) {
-	background-color: #ddd;
-}
-
-.planeRow.followed {
-	background-color: #7bbcfc !important;
-}
-
-#planesTable td {
-	padding: 2px;
-	overflow: hidden;
-}
-
-#planesTable tr td:nth-child(1) {
-	width: 11px;
-}
-
-#planesTable tr td:nth-child(1) label {
-	width: 100%;
-	height: 100%;
-	display: inline-block;
-	cursor: pointer;
-}
-
-#planesTable tr td:nth-child(2) {
-	width: 158px;
-	padding-left: 5px;
-	font-size: 11px;
-	cursor: pointer;
-}
-
-#planesTable tr td:nth-child(2) strong {
-	font-size: 13px;
-}
-
-#planesTable tr td:nth-child(3) {
-	width: 36px;
-	text-align: center;
-}
-
-#planesTable tr td:nth-child(4) {
-	width: 36px;
-	text-align: center;
-}
-
-#planesTable tr td:nth-child(5) {
-	width: 36px;
-	text-align: center;
 }
 
 .labelsAirport {
@@ -169,10 +111,26 @@ html, body, #map-canvas, #map-canvas-wrapper {
 	color: black;
 	background-color: lightgray;
 	font-family: "Lucida Grande", "Arial", sans-serif;
-	font-size: 10px;
+	font-size: 11px;
 	font-weight: bold;
 	text-align: center;
 	width: 50px;
 	border: 2px solid black;
 	white-space: nowrap;
+}
+.runwayTable {
+	font-family: "Arial", sans-serif;
+	font-size: 12px;
+}
+.runwayInfo {
+	color: blue;
+	font-weight: bold;
+}
+.vorTable {
+	font-family: "Arial", sans-serif;
+	font-size: 12px;
+}
+.vorInfo {
+	color: blue;
+	font-weight: bold;
 }

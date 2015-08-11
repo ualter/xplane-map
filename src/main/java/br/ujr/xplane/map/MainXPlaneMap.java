@@ -90,6 +90,10 @@ public class MainXPlaneMap {
 				sendFile(t, "map.css");	
 			} else if (req.startsWith("/airport.png")) {
 				sendFile(t, "airport.png");		
+			} else if (req.startsWith("/VOR.png")) {
+				sendFile(t, "VOR.png");
+			} else if (req.startsWith("/NDB.png")) {
+				sendFile(t, "NDB.png");	
 			} else {
 				sendFile(t, "index.html");
 			}

@@ -53,6 +53,26 @@ var iconWaypoint = {
 	fillOpacity : 1,
 };
 
+var iconVOR = {
+	path : google.maps.SymbolPath.CIRCLE,
+	scale : 7,
+	strokeColor : '#000000',
+	strokeOpacity : 1,
+	strokeWeight : 3,
+	fillColor : 'yellow',
+	fillOpacity : 1,
+};
+
+var iconNDB = {
+	path : google.maps.SymbolPath.CIRCLE,
+	scale : 7,
+	strokeColor : '#262626',
+	strokeOpacity : 1,
+	strokeWeight : 3,
+	fillColor : '#FFD05C',
+	fillOpacity : 1,
+};
+
 var planeList = {};
 var refreshControlPanel = false;
 var planeToFollow = null;
@@ -79,17 +99,19 @@ function initialize() {
 	});
 
 	$('body').keyup(function(e) {
-		if (e.keyCode == 9) {
-			if ($('#panel').is(":hidden")) {
-				showPanel();
-			} else
-				hidePanel();
-		}
 		if (e.keyCode == 78) {
 			if (navMap.getOpacity()) {
 				hideNavaids();
 			} else
 				showNavaids();
+		}
+		if (e.keyCode == 70) {
+			//flightplan
+			if ($('#panel-fp').is(":hidden")) {
+				showPanel();
+			} else {
+				hidePanel();
+			}
 		}
 	});
 
@@ -133,16 +155,40 @@ function initialize() {
 	loadFlightPlan();
 }
 
-
 function loadFlightPlanData() {
 	// Loading Flight Plan Information
 	flightPlan = {
 		departure : {
 			id : "SBSP",
 			name : "Congonhas",
-			latlng : new google.maps.LatLng(-23.62611, -46.656387)
+			latlng : new google.maps.LatLng(-23.62611, -46.656387),
+			runways : [ {
+				number : "17R",
+				heading : "168",
+				length : 3.500,
+				frenquency : "120.00",
+				elevation : 2.300
+			}, {
+				number : "35R",
+				heading : "18",
+				length : 3.500,
+				frenquency : "140.20",
+				elevation : 2.300
+			} ]
 		},
 		waypoints : [ {
+			id : "BCO",
+			latlng : new google.maps.LatLng(-23.406428, -46.385464),
+			type : 1,
+			descr : "BONSUCESSO SAO PAULO",
+			freq : "116.00"
+		}, {
+			id : "TBE",
+			latlng : new google.maps.LatLng(-23.045636, -45.516708),
+			type : 2,
+			descr : "TAUBATE",
+			freq : "430"
+		}, {
 			id : "LODOG",
 			latlng : new google.maps.LatLng(-23.545668, -45.339333)
 		}, {
@@ -152,14 +198,27 @@ function loadFlightPlanData() {
 		destination : {
 			id : "SBRJ",
 			name : "Santos Dumont",
-			latlng : new google.maps.LatLng(-22.91, -43.162777)
+			latlng : new google.maps.LatLng(-22.91, -43.162777),
+			runways : [ {
+				number : "15L",
+				heading : "168",
+				length : 2.500,
+				frenquency : "120.00",
+				elevation : 300
+			}, {
+				number : "20L",
+				heading : "18",
+				length : 2.500,
+				frenquency : "140.20",
+				elevation : 300
+			} ]
 		}
 	}
 }
 
 function loadFlightPlan() {
 	loadFlightPlanData();
-	
+
 	// Loading flightPlanCoordinates variable
 	var arrCoord = new Array();
 	arrCoord[0] = flightPlan.departure.latlng;
@@ -168,16 +227,19 @@ function loadFlightPlan() {
 		arrCoord[totalWaypoints + 1] = flightPlan.waypoints[totalWaypoints].latlng;
 		// Mark the Waypoint
 		waypoint = {
-				id : flightPlan.waypoints[totalWaypoints].id,
-				latlng : flightPlan.waypoints[totalWaypoints].latlng
+			id : flightPlan.waypoints[totalWaypoints].id,
+			latlng : flightPlan.waypoints[totalWaypoints].latlng,
+			type : flightPlan.waypoints[totalWaypoints].type,
+			descr : flightPlan.waypoints[totalWaypoints].descr,
+			freq : flightPlan.waypoints[totalWaypoints].freq
 		}
 		markWaypoint(waypoint);
-		
+
 		totalWaypoints++;
 	}
 	arrCoord[totalWaypoints + 1] = flightPlan.destination.latlng;
 	flightPlanCoordinates = arrCoord;
-	
+
 	// Loading Flight Plan Polyline - Draw the line
 	flightPath = new google.maps.Polyline({
 		path : flightPlanCoordinates,
@@ -187,24 +249,27 @@ function loadFlightPlan() {
 		strokeWeight : 6
 	});
 	flightPath.setMap(map);
-	
+
 	// Mark for the Airport Departure
 	departure = {
-		id  : flightPlan.departure.id,
+		id : flightPlan.departure.id,
 		name : flightPlan.departure.name,
-		latlng : flightPlan.departure.latlng 
+		latlng : flightPlan.departure.latlng,
+		runways : flightPlan.departure.runways
 	}
 	markAirport(departure);
-	
+
 	// Mark for the Airport Destination
 	destination = {
-		id  : flightPlan.destination.id,
+		id : flightPlan.destination.id,
 		name : flightPlan.destination.name,
-		latlng : flightPlan.destination.latlng 
+		latlng : flightPlan.destination.latlng,
+		runways : flightPlan.destination.runways
 	}
 	markAirport(destination);
-	
-	var panFlightPlan = new google.maps.LatLngBounds(flightPlan.departure.latlng, flightPlan.destination.latlng);
+
+	var panFlightPlan = new google.maps.LatLngBounds(
+			flightPlan.departure.latlng, flightPlan.destination.latlng);
 	map.fitBounds(panFlightPlan);
 }
 
@@ -217,25 +282,115 @@ function markAirport(airport) {
 		labelAnchor : new google.maps.Point(20, 70),
 		labelClass : "labelsAirport"
 	});
+
+	var infoContent = "<b>" + airport.id + "</b> - " + airport.name + "<hr/>";
+	infoContent += "<table width='100%' class='runwayTable' cellspacing='0' cellpadding='0'>";
+	for (var i = 0; i < airport.runways.length; i++) {
+		infoContent += "<tr>"
+				+ " <td>Runway <span class='runwayInfo'>"
+				+ airport.runways[i].number
+				+ "</span></td>"
+				+ " <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Heading: <span class='runwayInfo'>"
+				+ airport.runways[i].heading
+				+ "<font size='2px'>&deg;</font></span></td>"
+				+ " <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Frequency: <span class='runwayInfo'>"
+				+ airport.runways[i].frenquency + "</span><br/></td>" + "</tr>";
+	}
+	infoContent += "</table>";
+
 	var infoM1 = new google.maps.InfoWindow({
-		content : "<b>" + airport.id + "</b> - " + airport.name
+		content : infoContent
 	});
-	google.maps.event.addListener(m1, "click", function(e) {
+	google.maps.event.addListener(m1, "mouseover", function(e) {
 		infoM1.open(map, this);
+	});
+	google.maps.event.addListener(m1, "mouseout", function(e) {
+		infoM1.close();
 	});
 	m1.setMap(map);
 }
 
 function markWaypoint(waypoint) {
+	var iconWPT = iconWaypoint;
+	var infoContent = "";
+	if (waypoint.type == 1) {
+		iconWPT = iconVOR;
+	} else if (waypoint.type == 2) {
+		iconWPT = iconNDB;
+	}
+
 	var mw1 = new MarkerWithLabel({
 		position : waypoint.latlng,
 		animation : google.maps.Animation.DROP,
-		icon : iconWaypoint,
+		icon : iconWPT,
 		labelContent : waypoint.id,
 		labelAnchor : new google.maps.Point(28, -6),
 		labelClass : "labelsWaypoint"
 	});
+	if (waypoint.type == undefined) {
+		// FIX
+		infoContent = "<table border=0 class='vorTable' cellspacing='0' cellpadding='0' width='120px'>";
+		infoContent += "<td colspan=2><b>" + waypoint.id + "</b></td></tr>"
+		infoContent += "<tr><td colspan='2'><hr/></td></tr>";
+		infoContent += "<tr>"
+				+ " <td width='1%'> Latitude:&nbsp;</td><td><span class='vorInfo'>"
+				+ precisionDecimalNumber(waypoint.latlng.lat()) + "</td>"
+				+ "</tr>";
+		infoContent += "<tr>"
+				+ " <td> Longitude:&nbsp;</td><td><span class='vorInfo'>"
+				+ precisionDecimalNumber(waypoint.latlng.lng()) + "<br/></td>"
+				+ "</tr>";
+		infoContent += "</table>";
+
+	} else if (waypoint.type == 1 || waypoint.type == 2) {
+		// VOR and NDB
+		infoContent = "<table border=0 class='vorTable' cellspacing='0' cellpadding='0' width='230px'>";
+		infoContent += "<tr>";
+		infoContent += " <td valign='middle' colspan=2>";
+		infoContent += "  <table border=0 class='vorTable' cellspacing='0' cellpadding='0'><tr><td>";
+		if (waypoint.type == 1) {
+			// VOR
+			infoContent += " <img src='VOR.png'/>";
+		} else if (waypoint.type == 2) {
+			// NBD
+			infoContent += " <img src='NDB.png'/>";
+		}
+		infoContent += "</td>";
+		infoContent += "<td>&nbsp;&nbsp;&nbsp;<b>" + waypoint.id + "</b> - "
+				+ waypoint.descr + "</td>" + "</tr></table>"
+		infoContent += "<tr><td colspan='2'><hr/></td></tr>";
+		infoContent += "<tr>"
+				+ " <td width='20%'> Frequency:&nbsp;</td><td><span class='vorInfo'>"
+				+ waypoint.freq + "</td>" + "</tr>";
+		infoContent += "<tr>"
+				+ " <td width='1%'> Latitude:&nbsp;</td><td><span class='vorInfo'>"
+				+ precisionDecimalNumber(waypoint.latlng.lat()) + "</td>"
+				+ "</tr>";
+		infoContent += "<tr>"
+				+ " <td> Longitude:&nbsp;</td><td><span class='vorInfo'>"
+				+ precisionDecimalNumber(waypoint.latlng.lng()) + "<br/></td>"
+				+ "</tr>";
+		infoContent += "</table>";
+	}
+	var infoM1 = new google.maps.InfoWindow({
+		content : infoContent
+	});
+	/*
+	 * google.maps.event.addListener(mw1, "click", function(e) {
+	 * infoM1.open(map, this); });
+	 */
+	google.maps.event.addListener(mw1, "mouseover", function(e) {
+		infoM1.open(map, this);
+	});
+	google.maps.event.addListener(mw1, "mouseout", function(e) {
+		infoM1.close();
+	});
 	mw1.setMap(map);
+}
+
+function precisionDecimalNumber(vlr) {
+	return parseFloat(Math.round(vlr * 100000) / 100000).toFixed(5);
+	;
 }
 
 function updatePosition() {
@@ -244,8 +399,8 @@ function updatePosition() {
 					"data",
 					function(data) {
 						if ($.isEmptyObject(data)) {
-							showError("No planes were detected. Please check X-Plane's data output and internet settings,"
-									+ " and make sure that everyone's firewall allows inbound and outbound UDP traffic to port 49003.");
+							showError("No planes detected at X-Plane's UDP traffic port 49003. " +
+									"Please check the settings at the X-Plane's Net Connections menu.");
 						}
 
 						// delete all absent planes
@@ -534,39 +689,11 @@ function nextColor() {
 }
 
 function hidePanel() {
-	$('#panel').animate(
-			{
-				'right' : '-300px'
-			},
-			400,
-			'swing',
-			function() {
-				$('#panel-button').html('Show panel (Tab)').unbind('click')
-						.click(showPanel);
-				$('#panel').hide();
-				google.maps.event.trigger(map, 'resize');
-			});
-	$('#map-canvas-wrapper').animate({
-		'margin-right' : '0px'
-	});
+	$('#panel-fp').hide("slow");
 }
 
 function showPanel() {
-	$('#panel').show();
-	$('#panel').animate(
-			{
-				'right' : '0px'
-			},
-			400,
-			'swing',
-			function() {
-				$('#panel-button').html('Hide panel (Tab)').unbind('click')
-						.click(hidePanel);
-				google.maps.event.trigger(map, 'resize');
-			});
-	$('#map-canvas-wrapper').animate({
-		'margin-right' : '300px'
-	});
+	$('#panel-fp').show("slow");
 }
 
 function hideNavaids() {

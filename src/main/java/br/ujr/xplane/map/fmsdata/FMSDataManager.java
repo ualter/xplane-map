@@ -12,6 +12,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import br.ujr.xplane.map.fmsdata.Navaid.NavaidType;
 import ch.qos.logback.classic.Level;
 
 public class FMSDataManager {
@@ -55,10 +56,22 @@ public class FMSDataManager {
 				String id = columns[0];
 				String desc = columns[1];
 				String freq = Utils.parseFreq(columns[2]);
+				int    type = Integer.parseInt(columns[3]);
 				float lat = Utils.parseCoord(columns[6]);
 				float lon = Utils.parseCoord(columns[7]);
+				
+				NavaidType navaidType = null;
+				switch(type) {
+					case 1: {
+						navaidType = NavaidType.VOR;
+						break;
+					}
+					default: {
+						navaidType = NavaidType.NDB;
+					}
+				}
 
-				Navaid navaid = new Navaid(id, desc, freq, lat, lon);
+				Navaid navaid = new Navaid(id, desc, freq, lat, lon, navaidType);
 				this.navaids.put(id, navaid);
 				savePlace(navaid);
 
