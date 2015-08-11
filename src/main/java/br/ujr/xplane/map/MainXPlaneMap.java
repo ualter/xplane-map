@@ -84,8 +84,12 @@ public class MainXPlaneMap {
 				os.close();
 			} else if (req.startsWith("/map.js")) {
 				sendFile(t, "map.js");
+			} else if (req.startsWith("/markerwithlabel.js")) {
+				sendFile(t, "markerwithlabel.js");	
 			} else if (req.startsWith("/map.css")) {
 				sendFile(t, "map.css");	
+			} else if (req.startsWith("/airport.png")) {
+				sendFile(t, "airport.png");		
 			} else {
 				sendFile(t, "index.html");
 			}

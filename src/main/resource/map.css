@@ -4,6 +4,7 @@ html, body, #map-canvas, #map-canvas-wrapper {
 	padding: 0;
 	overflow: hidden;
 }
+
 #map-canvas-wrapper {
 	margin-right: 0px;
 	position: relative;
@@ -18,14 +19,14 @@ html, body, #map-canvas, #map-canvas-wrapper {
 	border: 1px solid #999;
 	border-radius: 2px;
 	box-shadow: rgba(0, 0, 0, 0.298039) 0px 1px 4px -1px;
-	font-family: Roboto,Arial,sans-serif;
+	font-family: Roboto, Arial, sans-serif;
 	text-decoration: none;
 	border: 1px solid #ff0000;
 	background-color: #ff5b5b;
 	color: #fff;
 	width: 40%;
 	display: none;
-	text-align: center; 
+	text-align: center;
 	font-size: 15px;
 	font-weight: 400;
 }
@@ -38,23 +39,24 @@ html, body, #map-canvas, #map-canvas-wrapper {
 	height: 100%;
 	width: 300px;
 	background-color: #fff;
-	font-family: Roboto,Arial,sans-serif;
+	font-family: Roboto, Arial, sans-serif;
 	font-size: 13px;
 	font-weight: 300;
 }
+
 #bottom-note {
 	position: absolute;
-   	bottom: 0;
-   	text-align: center;
-   	font-size: 11px;
-   	color: #666;
-   	margin: 0px 15px 5px 15px;
+	bottom: 0;
+	text-align: center;
+	font-size: 11px;
+	color: #666;
+	margin: 0px 15px 5px 15px;
 }
 
 #panel-button, #navaids-button {
 	position: absolute;
 	bottom: 20px;
-	font-family: Roboto,Arial,sans-serif;
+	font-family: Roboto, Arial, sans-serif;
 	text-decoration: none;
 	border: 1px solid #999;
 	font-size: 13px;
@@ -63,16 +65,24 @@ html, body, #map-canvas, #map-canvas-wrapper {
 	border-radius: 2px;
 	padding: 3px;
 	cursor: pointer;
-} 
-#panel-button { right: 15px; }
-#navaids-button {right: 140px; }
+}
+
+#panel-button {
+	right: 15px;
+}
+
+#navaids-button {
+	right: 140px;
+}
 
 #panel-button:hover, #navaids-button:hover {
 	background-color: #ccc;
 }
+
 #panel-button:active, , #navaids-button:active {
 	background-color: #7bbcfc;
 }
+
 #planesTable {
 	border-collapse: collapse;
 	border: 0;
@@ -93,30 +103,38 @@ html, body, #map-canvas, #map-canvas-wrapper {
 #planeNameInput {
 	width: 140px;
 }
-#planesTable tr:nth-child(odd) {background-color: #ddd;}
+
+#planesTable tr:nth-child(odd) {
+	background-color: #ddd;
+}
 
 .planeRow.followed {
 	background-color: #7bbcfc !important;
 }
+
 #planesTable td {
 	padding: 2px;
 	overflow: hidden;
 }
+
 #planesTable tr td:nth-child(1) {
 	width: 11px;
 }
+
 #planesTable tr td:nth-child(1) label {
 	width: 100%;
 	height: 100%;
 	display: inline-block;
 	cursor: pointer;
 }
+
 #planesTable tr td:nth-child(2) {
 	width: 158px;
 	padding-left: 5px;
 	font-size: 11px;
 	cursor: pointer;
 }
+
 #planesTable tr td:nth-child(2) strong {
 	font-size: 13px;
 }
@@ -125,11 +143,36 @@ html, body, #map-canvas, #map-canvas-wrapper {
 	width: 36px;
 	text-align: center;
 }
+
 #planesTable tr td:nth-child(4) {
 	width: 36px;
 	text-align: center;
 }
+
 #planesTable tr td:nth-child(5) {
 	width: 36px;
 	text-align: center;
+}
+
+.labelsAirport {
+	color: darkblue;
+	background-color: white;
+	font-family: "Lucida Grande", "Arial", sans-serif;
+	font-size: 12px;
+	font-weight: bold;
+	text-align: center;
+	width: 38px;
+	border: 2px solid black;
+	white-space: nowrap;
+}
+.labelsWaypoint {
+	color: black;
+	background-color: lightgray;
+	font-family: "Lucida Grande", "Arial", sans-serif;
+	font-size: 10px;
+	font-weight: bold;
+	text-align: center;
+	width: 50px;
+	border: 2px solid black;
+	white-space: nowrap;
 }
