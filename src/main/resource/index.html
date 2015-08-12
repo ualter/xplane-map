@@ -10,17 +10,14 @@
 </head>
 <body>
 	<div id="map-canvas"></div>
-	<div id="flightplan-button">Flight Plan (F)</div>
+	<div id="flightplan-button">Flight Plan (Shift)</div>
+	<div id="flightplan-help">Fill the route with all the waypoints separated by spaces. This waypoints might be VOR, FIX or Airports.</div>
 	<div id="panel-fp">
 	    <div>
-			<textarea rows="10" cols="78"></textarea>
+			<textarea id="boxFlightPlan" rows="6" cols="61"></textarea>
 		</div>
 	</div>
-	<!-- <div id="map-canvas-wrapper">
-		<div id="navaids-button">Show navaids (N)</div>
-	</div> -->
-	<div id="errorBox">
-	</div>
+	<div id="errorBox"></div>
 	<script type="text/javascript">
 		$('input[name=plane]').change(function() {
 			$('.planeRow').removeClass("followed");
@@ -49,8 +46,8 @@
 			
 		});
 		
-		$('#panel-button').click(showPanel);
 		$('#navaids-button').click(showNavaids);
+		$('#flightplan-button').click(toggleFlightPanel);
 		</script>
 </body>
 </html>

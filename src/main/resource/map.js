@@ -105,13 +105,8 @@ function initialize() {
 			} else
 				showNavaids();
 		}
-		if (e.keyCode == 70) {
-			//flightplan
-			if ($('#panel-fp').is(":hidden")) {
-				showPanel();
-			} else {
-				hidePanel();
-			}
+		if (e.keyCode == 16) {
+			toggleFlightPanel();
 		}
 	});
 
@@ -153,6 +148,7 @@ function initialize() {
 	navMap.setOpacity(0);
 
 	loadFlightPlan();
+	
 }
 
 function loadFlightPlanData() {
@@ -688,12 +684,23 @@ function nextColor() {
 	}
 }
 
-function hidePanel() {
-	$('#panel-fp').hide("slow");
+function toggleFlightPanel() {
+	if ($('#panel-fp').is(":hidden")) {
+		showFlightPanel();
+	} else {
+		hideFlightPanel();
+	}
+}
+function hideFlightPanel() {
+	$('#panel-fp').hide(500);
+	$('#flightplan-help').hide(300);
+	$('#flightplan-button').removeClass("down").addClass("up");
 }
 
-function showPanel() {
-	$('#panel-fp').show("slow");
+function showFlightPanel() {
+	$('#panel-fp').show(500);
+	$('#flightplan-help').show(300);
+	$('#flightplan-button').removeClass("up").addClass("down");
 }
 
 function hideNavaids() {

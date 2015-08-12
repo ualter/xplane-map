@@ -1,13 +1,8 @@
-html, body, #map-canvas, #map-canvas-wrapper {
+html, body, #map-canvas {
 	height: 100%;
 	margin: 0;
 	padding: 0;
 	overflow: hidden;
-}
-
-#map-canvas-wrapper {
-	/* margin-right: 0px;
-	position: relative; */
 }
 
 #panel-fp {
@@ -50,7 +45,7 @@ html, body, #map-canvas, #map-canvas-wrapper {
 	font-weight: 400;
 }
 
-#panel {
+/* #panel {
 	display: none;
 	float: right;
 	position: absolute;
@@ -62,17 +57,30 @@ html, body, #map-canvas, #map-canvas-wrapper {
 	font-size: 13px;
 	font-weight: 300;
 }
-
-#bottom-note {
+ */
+#boxFlightPlan {
+	 text-transform: uppercase;
+	 font-family: Verdana, Arial, sans-serif;
+	 font-size: 13px;
+	 font-weight: bold;
+} 
+#flightplan-help {
+	z-index: 1000;
 	position: absolute;
-	bottom: 0;
-	text-align: center;
-	font-size: 11px;
-	color: #666;
-	margin: 0px 15px 5px 15px;
+	top: 32px;
+	left: 11.4%;
+	font-family: Verdana, Arial, sans-serif;
+	text-decoration: none;
+	box-shadow: 4px 4px 4px 0px rgba(50, 50, 50, 0.75);
+	border: 1px solid #000;
+	font-size: 12px;
+	font-weight: 500;
+	background-color: #000;
+	color: #fff;
+	border-radius: 2px;
+	padding: 10px;
+	display: none;
 }
-
-
 #flightplan-button {
 	position: absolute;
 	top: 28px;
@@ -88,12 +96,13 @@ html, body, #map-canvas, #map-canvas-wrapper {
 	cursor: pointer;
 	border-radius: 5px;
 }
-#flightplan-button:hover, #navaids-button:hover {
+#flightplan-button.down {
 	background-color: #000;
 	color: #fff;
 }
-#flightplan-button:active, , #navaids-button:active {
-	background-color: #7bbcfc;
+#flightplan-button.up {
+	background-color: #fff;
+	color: #000;
 }
 
 .labelsAirport {
