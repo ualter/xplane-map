@@ -372,6 +372,24 @@ public class FMSDataManager {
 		
 		return result;
 	}
+	
+	public Map<String,Fix> searchFixStartsWith(String keySearched) {
+		
+		Map<String,Fix> result = new LinkedHashMap<String,Fix>();
+		
+		TreeMap<String, Fix> subset = new TreeMap<String, Fix>(this.getFixes());
+		SortedMap<String, Fix> found = subset.tailMap(keySearched);
+		
+		for (String key : found.keySet()) {
+			if ( key.startsWith(keySearched) ) {
+				result.put(key,found.get(key));
+			} else {
+				break;
+			}
+		}
+		
+		return result;
+	}
 
 	public static void main(String[] args) {
 		FMSDataManager fmsDataManager = new FMSDataManager();
@@ -383,10 +401,16 @@ public class FMSDataManager {
 		 * fmsDataManager.getFixes().get("XOKIX-0");
 		 */
 
-		Map<String,Navaid> list = fmsDataManager.searchNavaidStartsWith("TBE");
-		for(String k : list.keySet()) {
-			Navaid n = list.get(k);
-			System.out.println(k + " = " + n.getCode() + "," + n.getLatitude());
+		Map<String,Navaid> listNavaid = fmsDataManager.searchNavaidStartsWith("KEVUN");
+		for(String k : listNavaid.keySet()) {
+			Navaid n = listNavaid.get(k);
+			System.out.println(k + " = " + n.getCode() + "," + n.getLatitude() + "," + n.getLongitude());
+		}
+		
+		Map<String,Fix> listFix = fmsDataManager.searchFixStartsWith("KEVUN");
+		for(String k : listFix.keySet()) {
+			Fix n = listFix.get(k);
+			System.out.println(k + " = " + n.getCode() + "," + n.getLatitude() + "," + n.getLongitude());
 		}
 
 	}

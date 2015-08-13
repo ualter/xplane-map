@@ -71,5 +71,11 @@ public class FlightPlan {
 		Waypoint w = new Waypoint(fix.getCode(), fix.getLatitude(), fix.getLongitude());
 		this.waypoints.add(w);
 	}
+	
+	public boolean isValid() {
+		if ( this.departure == null ) return false;
+		if ( this.destination == null ) return false;
+		return true;
+	}
 
 }

@@ -1,12 +1,24 @@
 const
 period = 1000; // time between refreshes in ms
+
+var posClient = new google.maps.LatLng(-23.62611, -46.656387)
+if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function(position) {
+    	posClient = {
+        lat: position.coords.latitude,
+        lng: position.coords.longitude
+      };
+    });
+}
+
 var mapOptions = {
 	center : {
 		lat : 0,
 		lng : 0
 	},
 	zoom : 8,
-	mapTypeId : google.maps.MapTypeId.TERRAIN
+	mapTypeId : google.maps.MapTypeId.TERRAIN,
+	center : posClient
 };
 var map;
 var polyOptions = {
@@ -155,22 +167,36 @@ function checkFlightPlanBoxAndLoad() {
 		var text = $('textarea#boxFlightPlan').val();
 		if (text != flightplanText) {
 			flightplanText = text;
-			$
-					.getJSON(
-							"flightplan",
-							function(data) {
-								if ($.isEmptyObject(data)) {
-									showError("Error loading Flight Plan. No content was returned.");
-								}
-								flightPlan = data;
-								loadFlightPlan();
-							}
-
-					)
-					.error(
-							function() {
-								showError('Please check the connection with http://server:port/flightplan, is not working.')
-							});
+			
+			var groups = "SBSP TBE LODOG KEVUN NAXOP UGRAD SBRJ".split(" ");
+			var waypoints = "";
+			if ( groups.length > 1 ) {
+			    for(var i = 1; i < (groups.length-1); i++) {
+				   waypoints += groups[i];
+			       if (waypoints.length > 1) {
+			        	waypoints += "+";
+			    	}
+			    }
+			}
+			var params = {
+			    departure : groups[0],
+			    waypoints : waypoints,
+			    destination : groups[groups.length - 1]
+			};
+			
+			$.getJSON("flightplan",params
+				)
+				.done(function(data) {
+						if ($.isEmptyObject(data)) {
+							showError("Error loading Flight Plan. No content was returned.");
+						}
+						flightPlan = data;
+						loadFlightPlan();
+				})
+				.error(
+						function() {
+							showError('Please check the connection with http://server:port/flightplan, is not working.')
+						});
 		}
 	}
 }
