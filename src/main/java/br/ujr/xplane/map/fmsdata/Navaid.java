@@ -1,30 +1,44 @@
 package br.ujr.xplane.map.fmsdata;
 
 public class Navaid implements Place {
-	
+
 	public enum NavaidType {
 		VOR, NDB
 	}
 
-	private String	code;
-	private String	description;
-	private String	frequency;
-	private float	longitude;
-	private float	latitude;
-	private NavaidType navaidType;
+	private int			index;
+	private String		code;
+	private String		description;
+	private String		frequency;
+	private float		longitude;
+	private float		latitude;
+	private NavaidType	navaidType;
 
 	public Navaid() {
 		super();
 	}
 
-	public Navaid(String code, String description, String frequency, float longitude, float latitude, NavaidType navaidType) {
+	public Navaid(int index, String code, String description, String frequency, float latitude, float longitude, NavaidType navaidType) {
 		super();
+		this.index = index;
 		this.code = code;
 		this.description = description;
 		this.frequency = frequency;
 		this.longitude = longitude;
 		this.latitude = latitude;
 		this.navaidType = navaidType;
+	}
+
+	public String getKey() {
+		return this.code + "-" + this.index;
+	}
+
+	public int getIndex() {
+		return index;
+	}
+
+	public void setIndex(int index) {
+		this.index = index;
 	}
 
 	public String getCode() {

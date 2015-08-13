@@ -10,6 +10,7 @@ public class Airport implements Place {
 	private float				latitude;
 	private float				longitude;
 	private Map<String, Runway>	runways	= new HashMap<String, Runway>();
+	private Airport.Runway[]	arrayRunways;
 
 	public Airport() {
 		super();
@@ -71,11 +72,22 @@ public class Airport implements Place {
 	public void setRunways(Map<String, Runway> runways) {
 		this.runways = runways;
 	}
-	
+
+	public Airport.Runway[] getArrayRunways() {
+		this.arrayRunways = new Airport.Runway[runways.size()];
+		runways.values().toArray(this.arrayRunways);
+		return arrayRunways;
+	}
+
+	public void setArrayRunways(Airport.Runway[] arrayRunways) {
+		this.arrayRunways = arrayRunways;
+	}
+
 	public String listRunways() {
 		StringBuilder sb = new StringBuilder();
-		for(Runway r : this.runways.values()) {
-			if (sb.length() > 0) sb.append(", ");
+		for (Runway r : this.runways.values()) {
+			if (sb.length() > 0)
+				sb.append(", ");
 			sb.append(r.getNumber());
 		}
 		return sb.toString();

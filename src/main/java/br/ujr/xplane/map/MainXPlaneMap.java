@@ -9,19 +9,32 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
 
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.SerializationConfig;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import br.ujr.xplane.map.fmsdata.Airport;
+import br.ujr.xplane.map.fmsdata.FMSDataManager;
+import br.ujr.xplane.map.fmsdata.Fix;
+import br.ujr.xplane.map.fmsdata.Navaid;
+import br.ujr.xplane.map.fmsdata.flightplan.FlightPlan;
+import br.ujr.xplane.map.fmsdata.flightplan.FlightPlanLoadMessages;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 
 public class MainXPlaneMap {
-	
-	public static Logger logger = LoggerFactory.getLogger(MainXPlaneMap.class);
-	
+
+	public static Logger			logger	= LoggerFactory.getLogger(MainXPlaneMap.class);
+
+	public static FMSDataManager	fms;
+
 	public static void main(String[] args) throws Exception {
+
+		fms = new FMSDataManager();
 		PlanesList list = new PlanesList();
 
 		new Thread(new UDPListener(list)).start();
@@ -64,7 +77,7 @@ public class MainXPlaneMap {
 
 		public void handle(HttpExchange t) throws IOException {
 			String req = t.getRequestURI().toString();
-			
+
 			if (req.startsWith("/data")) {
 				JSONObject planes = new JSONObject();
 				for (String ip : this.planesList.getLatMap().keySet()) {
@@ -74,29 +87,94 @@ public class MainXPlaneMap {
 					latlon.put("alt", this.planesList.getAltMap().get(ip));
 					planes.put(ip.replace('.', '-').substring(1), latlon);
 				}
-				StringWriter out = new StringWriter();
-				planes.writeJSONString(out);
-				String response = out.toString();
+				sendJSONObject(t, planes);
+			} else if (req.startsWith("/flightplan")) {
+				JSONObject flightPlanJSON = new JSONObject();
 
-				t.sendResponseHeaders(200, response.length());
-				OutputStream os = t.getResponseBody();
-				os.write(response.getBytes());
-				os.close();
+				FlightPlan flightPlan = new FlightPlan();
+				FlightPlanLoadMessages messages = new FlightPlanLoadMessages();
+
+				String icaoDeparture = "SBSP";
+				String icaoDestination = "SBRJ";
+
+				Airport departure = fms.getAirports().get(icaoDeparture);
+				if (departure != null) {
+					flightPlan.setDeparture(departure);
+					Airport destination = fms.getAirports().get(icaoDestination);
+					if (destination != null) {
+						flightPlan.setDestination(destination);
+						
+						String wpt = "TBE-0"; 
+						Navaid navaid = fms.getNavaids().get(wpt);
+						if ( navaid != null ) {
+							flightPlan.addNavaid(navaid);
+						} else {
+							messages.addMessage(wpt + " was not found.");
+						}
+						
+						wpt = "LODOG";
+						String wptKey = wpt + "-0";
+						Fix fix = fms.getFixes().get(wptKey);
+						if ( fix != null ) {
+							flightPlan.addFix(fix);
+						} else {
+							messages.addMessage(wpt + " was not found.");
+						}
+						
+					} else {
+						messages.addMessage(icaoDestination + " was not found.");
+					}
+				} else {
+					messages.addMessage(icaoDeparture + " was not found.");
+				}
+
+				if (messages.isEmpty()) {
+					sendJSONObject(t,flightPlan);
+				} else {
+					flightPlanJSON.put("messages", messages);
+					sendJSONObject(t, flightPlanJSON);
+				}
+
+				sendJSONObject(t, flightPlanJSON);
 			} else if (req.startsWith("/map.js")) {
 				sendFile(t, "map.js");
 			} else if (req.startsWith("/markerwithlabel.js")) {
-				sendFile(t, "markerwithlabel.js");	
+				sendFile(t, "markerwithlabel.js");
 			} else if (req.startsWith("/map.css")) {
-				sendFile(t, "map.css");	
+				sendFile(t, "map.css");
 			} else if (req.startsWith("/airport.png")) {
-				sendFile(t, "airport.png");		
+				sendFile(t, "airport.png");
 			} else if (req.startsWith("/VOR.png")) {
 				sendFile(t, "VOR.png");
 			} else if (req.startsWith("/NDB.png")) {
-				sendFile(t, "NDB.png");	
+				sendFile(t, "NDB.png");
 			} else {
 				sendFile(t, "index.html");
 			}
+		}
+
+		private void sendJSONObject(HttpExchange t, JSONObject jsonObject) throws IOException {
+			StringWriter out = new StringWriter();
+			jsonObject.writeJSONString(out);
+			String response = out.toString();
+			sendHTTPResponse(t, response);
+		}
+		
+		private void sendJSONObject(HttpExchange t, Object bean) throws IOException {
+			ObjectMapper mapper = new ObjectMapper();
+			StringWriter out = new StringWriter();
+			mapper.configure(SerializationConfig.Feature.INDENT_OUTPUT, true);
+			//mapper.configure(SerializationConfig.Feature.WRAP_ROOT_VALUE, true);
+			mapper.writeValue(out, bean);
+			String response = out.toString();
+			sendHTTPResponse(t, response);
+		}
+
+		private void sendHTTPResponse(HttpExchange t, String response) throws IOException {
+			t.sendResponseHeaders(200, response.length());
+			OutputStream os = t.getResponseBody();
+			os.write(response.getBytes());
+			os.close();
 		}
 
 		private void sendFile(HttpExchange t, String file) {

@@ -10,7 +10,11 @@ public class Utils {
 	public static String	AIRWAYS_SOURCE		= PATH_SOURCE + "ATS.txt";
 
 	public static String parseFreq(String vlr) {
-		return vlr.substring(0, 3) + "." + vlr.substring(3, 5);
+		if ( vlr.length() > 5 ) {
+			return vlr.substring(0, 3) + "." + vlr.substring(3, 5);
+		} else {
+			return "---";
+		}
 	}
 
 	public static float parseCoord(String vlr) {

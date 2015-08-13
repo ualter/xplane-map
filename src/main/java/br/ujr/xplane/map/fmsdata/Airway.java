@@ -8,7 +8,7 @@ public class Airway {
 	private String					code;
 	private int                     index;
 	private String					number;
-	private Map<String, Waypoint>	waypoints	= new LinkedHashMap<String, Waypoint>();
+	private Map<String, Fix>	fixs	= new LinkedHashMap<String, Fix>();
 
 	public Airway(int index, String code, String number) {
 		super();
@@ -33,8 +33,8 @@ public class Airway {
 		this.index = index;
 	}
 
-	public Map<String, Waypoint> getWaypoints() {
-		return waypoints;
+	public Map<String, Fix> getWaypoints() {
+		return fixs;
 	}
 
 	public String getCode() {
@@ -57,12 +57,12 @@ public class Airway {
 		this.number = number;
 	}
 
-	public Map<String, Waypoint> getWayPoints() {
-		return waypoints;
+	public Map<String, Fix> getWayPoints() {
+		return fixs;
 	}
 
-	public void setWaypoints(Map<String, Waypoint> waypoints) {
-		this.waypoints = waypoints;
+	public void setWaypoints(Map<String, Fix> fixs) {
+		this.fixs = fixs;
 	}
 
 	@Override
@@ -70,7 +70,7 @@ public class Airway {
 		StringBuilder s = new StringBuilder(this.getKey());
 		s.append(": [");
 		StringBuilder waypoints = new StringBuilder();
-		for (Waypoint w : this.waypoints.values()) {
+		for (Fix w : this.fixs.values()) {
 			if (waypoints.length() > 0)
 				waypoints.append(", ");
 			waypoints.append(w.getCode());

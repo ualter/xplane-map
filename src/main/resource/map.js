@@ -112,6 +112,7 @@ function initialize() {
 
 	updatePosition();
 	setInterval(updatePosition, period);
+	setInterval(checkFlightPlanBoxAndLoad, period);
 	// load initial plane data and place planes
 
 	// nav data overlays
@@ -146,14 +147,37 @@ function initialize() {
 
 	map.overlayMapTypes.push(navMap);
 	navMap.setOpacity(0);
-
-	loadFlightPlan();
-	
 }
 
-function loadFlightPlanData() {
+var flightplanText = 'none';
+function checkFlightPlanBoxAndLoad() {
+	if ($('#panel-fp').is(":hidden") == false) {
+		var text = $('textarea#boxFlightPlan').val();
+		if (text != flightplanText) {
+			flightplanText = text;
+			$
+					.getJSON(
+							"flightplan",
+							function(data) {
+								if ($.isEmptyObject(data)) {
+									showError("Error loading Flight Plan. No content was returned.");
+								}
+								flightPlan = data;
+								loadFlightPlan();
+							}
+
+					)
+					.error(
+							function() {
+								showError('Please check the connection with http://server:port/flightplan, is not working.')
+							});
+		}
+	}
+}
+
+function loadFlightPlanDataFake() {
 	// Loading Flight Plan Information
-	flightPlan = {
+	/*flightPlan = {
 		departure : {
 			id : "SBSP",
 			name : "Congonhas",
@@ -209,31 +233,34 @@ function loadFlightPlanData() {
 				elevation : 300
 			} ]
 		}
-	}
+	}*/
 }
 
 function loadFlightPlan() {
-	loadFlightPlanData();
-
 	// Loading flightPlanCoordinates variable
+	var departureLatLng = new google.maps.LatLng(flightPlan.departure.latitude, flightPlan.departure.longitude);
+	var destinationLatLng = new google.maps.LatLng(flightPlan.destination.latitude, flightPlan.destination.longitude); 
 	var arrCoord = new Array();
-	arrCoord[0] = flightPlan.departure.latlng;
+	arrCoord[0] = departureLatLng;
 	var totalWaypoints = 0;
 	while (totalWaypoints < flightPlan.waypoints.length) {
-		arrCoord[totalWaypoints + 1] = flightPlan.waypoints[totalWaypoints].latlng;
+		arrCoord[totalWaypoints + 1] = 
+			new google.maps.LatLng(
+					flightPlan.waypoints[totalWaypoints].latitude,flightPlan.waypoints[totalWaypoints].longitude
+			);
 		// Mark the Waypoint
 		waypoint = {
 			id : flightPlan.waypoints[totalWaypoints].id,
-			latlng : flightPlan.waypoints[totalWaypoints].latlng,
+			latlng : new google.maps.LatLng(flightPlan.waypoints[totalWaypoints].latitude,flightPlan.waypoints[totalWaypoints].longitude),
 			type : flightPlan.waypoints[totalWaypoints].type,
-			descr : flightPlan.waypoints[totalWaypoints].descr,
-			freq : flightPlan.waypoints[totalWaypoints].freq
+			descr : flightPlan.waypoints[totalWaypoints].name,
+			freq : flightPlan.waypoints[totalWaypoints].frequency
 		}
 		markWaypoint(waypoint);
 
 		totalWaypoints++;
 	}
-	arrCoord[totalWaypoints + 1] = flightPlan.destination.latlng;
+	arrCoord[totalWaypoints + 1] = destinationLatLng;
 	flightPlanCoordinates = arrCoord;
 
 	// Loading Flight Plan Polyline - Draw the line
@@ -248,24 +275,23 @@ function loadFlightPlan() {
 
 	// Mark for the Airport Departure
 	departure = {
-		id : flightPlan.departure.id,
+		id : flightPlan.departure.icaoId,
 		name : flightPlan.departure.name,
-		latlng : flightPlan.departure.latlng,
-		runways : flightPlan.departure.runways
+		latlng : departureLatLng,
+		runways : flightPlan.departure.arrayRunways
 	}
 	markAirport(departure);
 
 	// Mark for the Airport Destination
 	destination = {
-		id : flightPlan.destination.id,
+		id : flightPlan.destination.icaoId,
 		name : flightPlan.destination.name,
-		latlng : flightPlan.destination.latlng,
-		runways : flightPlan.destination.runways
+		latlng : destinationLatLng,
+		runways : flightPlan.destination.arrayRunways
 	}
 	markAirport(destination);
 
-	var panFlightPlan = new google.maps.LatLngBounds(
-			flightPlan.departure.latlng, flightPlan.destination.latlng);
+	var panFlightPlan = new google.maps.LatLngBounds(departureLatLng, destinationLatLng);
 	map.fitBounds(panFlightPlan);
 }
 
@@ -290,7 +316,7 @@ function markAirport(airport) {
 				+ airport.runways[i].heading
 				+ "<font size='2px'>&deg;</font></span></td>"
 				+ " <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Frequency: <span class='runwayInfo'>"
-				+ airport.runways[i].frenquency + "</span><br/></td>" + "</tr>";
+				+ airport.runways[i].frequency + "</span><br/></td>" + "</tr>";
 	}
 	infoContent += "</table>";
 
@@ -323,31 +349,16 @@ function markWaypoint(waypoint) {
 		labelAnchor : new google.maps.Point(28, -6),
 		labelClass : "labelsWaypoint"
 	});
-	if (waypoint.type == undefined) {
-		// FIX
-		infoContent = "<table border=0 class='vorTable' cellspacing='0' cellpadding='0' width='120px'>";
-		infoContent += "<td colspan=2><b>" + waypoint.id + "</b></td></tr>"
-		infoContent += "<tr><td colspan='2'><hr/></td></tr>";
-		infoContent += "<tr>"
-				+ " <td width='1%'> Latitude:&nbsp;</td><td><span class='vorInfo'>"
-				+ precisionDecimalNumber(waypoint.latlng.lat()) + "</td>"
-				+ "</tr>";
-		infoContent += "<tr>"
-				+ " <td> Longitude:&nbsp;</td><td><span class='vorInfo'>"
-				+ precisionDecimalNumber(waypoint.latlng.lng()) + "<br/></td>"
-				+ "</tr>";
-		infoContent += "</table>";
-
-	} else if (waypoint.type == 1 || waypoint.type == 2) {
+	if (waypoint.type == 'VOR' || waypoint.type == 'NDB') {
 		// VOR and NDB
 		infoContent = "<table border=0 class='vorTable' cellspacing='0' cellpadding='0' width='230px'>";
 		infoContent += "<tr>";
 		infoContent += " <td valign='middle' colspan=2>";
 		infoContent += "  <table border=0 class='vorTable' cellspacing='0' cellpadding='0'><tr><td>";
-		if (waypoint.type == 1) {
+		if (waypoint.type == 'VOR') {
 			// VOR
 			infoContent += " <img src='VOR.png'/>";
-		} else if (waypoint.type == 2) {
+		} else if (waypoint.type == 'NDB') {
 			// NBD
 			infoContent += " <img src='NDB.png'/>";
 		}
@@ -358,6 +369,20 @@ function markWaypoint(waypoint) {
 		infoContent += "<tr>"
 				+ " <td width='20%'> Frequency:&nbsp;</td><td><span class='vorInfo'>"
 				+ waypoint.freq + "</td>" + "</tr>";
+		infoContent += "<tr>"
+				+ " <td width='1%'> Latitude:&nbsp;</td><td><span class='vorInfo'>"
+				+ precisionDecimalNumber(waypoint.latlng.lat()) + "</td>"
+				+ "</tr>";
+		infoContent += "<tr>"
+				+ " <td> Longitude:&nbsp;</td><td><span class='vorInfo'>"
+				+ precisionDecimalNumber(waypoint.latlng.lng()) + "<br/></td>"
+				+ "</tr>";
+		infoContent += "</table>";
+	} else {
+		// FIX
+		infoContent = "<table border=0 class='vorTable' cellspacing='0' cellpadding='0' width='120px'>";
+		infoContent += "<td colspan=2><b>" + waypoint.id + "</b></td></tr>"
+		infoContent += "<tr><td colspan='2'><hr/></td></tr>";
 		infoContent += "<tr>"
 				+ " <td width='1%'> Latitude:&nbsp;</td><td><span class='vorInfo'>"
 				+ precisionDecimalNumber(waypoint.latlng.lat()) + "</td>"
@@ -395,8 +420,8 @@ function updatePosition() {
 					"data",
 					function(data) {
 						if ($.isEmptyObject(data)) {
-							showError("No planes detected at X-Plane's UDP traffic port 49003. " +
-									"Please check the settings at the X-Plane's Net Connections menu.");
+							showError("No planes detected at X-Plane's UDP traffic port 49003. "
+									+ "Please check the settings at the X-Plane's Net Connections menu.");
 						}
 
 						// delete all absent planes
@@ -701,6 +726,7 @@ function showFlightPanel() {
 	$('#panel-fp').show(500);
 	$('#flightplan-help').show(300);
 	$('#flightplan-button').removeClass("up").addClass("down");
+	$('#boxFlightPlan').focus();
 }
 
 function hideNavaids() {

@@ -6,7 +6,10 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -21,16 +24,16 @@ public class FMSDataManager {
 	private Map<Coordinate, Place>	coordinates	= new HashMap<Coordinate, Place>();
 	private Map<String, Navaid>		navaids		= new HashMap<String, Navaid>();
 	private Map<String, Airport>	airports	= new HashMap<String, Airport>();
-	private Map<String, Waypoint>	waypoints	= new HashMap<String, Waypoint>();
+	private Map<String, Fix>		fixs		= new HashMap<String, Fix>();
 	private Map<String, Airway>		airways		= new HashMap<String, Airway>();
 
 	public FMSDataManager() {
 		super();
-		
-		//Temporarily
+
+		// Temporarily
 		ch.qos.logback.classic.Logger root = (ch.qos.logback.classic.Logger) org.slf4j.LoggerFactory.getLogger(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME);
-	    root.setLevel(Level.WARN);
-		
+		root.setLevel(Level.WARN);
+
 		init();
 	}
 
@@ -56,12 +59,12 @@ public class FMSDataManager {
 				String id = columns[0];
 				String desc = columns[1];
 				String freq = Utils.parseFreq(columns[2]);
-				int    type = Integer.parseInt(columns[3]);
+				int type = Integer.parseInt(columns[3]);
 				float lat = Utils.parseCoord(columns[6]);
 				float lon = Utils.parseCoord(columns[7]);
-				
+
 				NavaidType navaidType = null;
-				switch(type) {
+				switch (type) {
 					case 1: {
 						navaidType = NavaidType.VOR;
 						break;
@@ -71,12 +74,17 @@ public class FMSDataManager {
 					}
 				}
 
-				Navaid navaid = new Navaid(id, desc, freq, lat, lon, navaidType);
-				this.navaids.put(id, navaid);
+				Navaid navaid = new Navaid(0, id, desc, freq, lat, lon, navaidType);
+
+				while (this.navaids.containsKey(navaid.getKey())) {
+					navaid.setIndex(navaid.getIndex() + 1);
+				}
+
+				this.navaids.put(navaid.getKey(), navaid);
 				savePlace(navaid);
 
 				count++;
-				logger.info("Loading Navaid: {}", navaid.getCode() + "-" + navaid.getDescription());
+				logger.info("Loading Navaid: {}", navaid.getKey() + "-" + navaid.getDescription());
 
 				line = fileReader.readLine();
 			}
@@ -132,12 +140,14 @@ public class FMSDataManager {
 							String number = columns[1];
 							String heading = columns[2];
 							String length = columns[3];
+							String frequency = columns[5];
 							String latitude = columns[7];
 							String longitude = columns[8];
 							String elevation = columns[9];
 
 							Airport.Runway runway = new Airport.Runway();
 							runway.setNumber(number);
+							runway.setFrequency(Utils.parseFreq(frequency));
 							runway.setHeading(Integer.parseInt(heading));
 							runway.setLength(Integer.parseInt(length));
 							runway.setLongitude(longitude);
@@ -196,17 +206,17 @@ public class FMSDataManager {
 				float lat = Utils.parseCoord(columns[1]);
 				float lon = Utils.parseCoord(columns[2]);
 
-				Waypoint waypoint = new Waypoint(0,id, lat, lon);
-				
-				while(this.waypoints.containsKey(waypoint.getKey())) {
-					waypoint.setIndex(waypoint.getIndex() + 1);
+				Fix fix = new Fix(0, id, lat, lon);
+
+				while (this.fixs.containsKey(fix.getKey())) {
+					fix.setIndex(fix.getIndex() + 1);
 				}
-				
-				this.waypoints.put(waypoint.getKey(), waypoint);
-				savePlace(waypoint);
+
+				this.fixs.put(fix.getKey(), fix);
+				savePlace(fix);
 
 				count++;
-				logger.info("Loading Waypoint: {}", waypoint);
+				logger.info("Loading Waypoint: {}", fix);
 
 				line = fileReader.readLine();
 			}
@@ -237,7 +247,7 @@ public class FMSDataManager {
 
 			int count = 0;
 			Airway airway = null;
-			Waypoint finalWaypoint = null;
+			Fix finalWaypoint = null;
 
 			while (line != null) {
 
@@ -250,7 +260,7 @@ public class FMSDataManager {
 						String code = columns[1];
 						String number = columns[2];
 
-						airway = new Airway(0,code,number);
+						airway = new Airway(0, code, number);
 
 					} else if ("S".equalsIgnoreCase(type)) {
 						String code = columns[1];
@@ -260,17 +270,17 @@ public class FMSDataManager {
 						String latitude2 = columns[5];
 						String longitude2 = columns[6];
 
-						Waypoint waypoint = new Waypoint(0,code,latitude,longitude);
-						airway.getWayPoints().put(code, waypoint);
-						finalWaypoint = new Waypoint(0,code2,latitude2,longitude2);
+						Fix fix = new Fix(0, code, latitude, longitude);
+						airway.getWayPoints().put(code, fix);
+						finalWaypoint = new Fix(0, code2, latitude2, longitude2);
 					}
 				} else {
 					airway.getWayPoints().put(finalWaypoint.getCode(), finalWaypoint);
-					
+
 					while (this.airways.containsKey(airway.getKey())) {
 						airway.setIndex(airway.getIndex() + 1);
 					}
-					
+
 					this.airways.put(airway.getKey(), airway);
 					logger.info("Loading Airways: {}", new Object[] { (airway != null ? airway.toString() : "") });
 				}
@@ -278,12 +288,6 @@ public class FMSDataManager {
 				count++;
 				line = fileReader.readLine();
 			}
-
-			/*while (this.airways.containsKey(airway.getKey())) {
-				airway.setIndex(airway.getIndex() + 1);
-			}
-			this.airways.put(airway.getKey(), airway);
-			logger.info("Loading Airways: {}", new Object[] { (airway != null ? airway.toString() : "") });*/
 
 		} catch (FileNotFoundException e) {
 			logger.error(e.getMessage(), e);
@@ -302,7 +306,6 @@ public class FMSDataManager {
 		}
 	}
 
-	
 	public Map<Coordinate, Place> getCoordinates() {
 		return coordinates;
 	}
@@ -311,12 +314,12 @@ public class FMSDataManager {
 		this.coordinates = coordinates;
 	}
 
-	public Map<String, Waypoint> getWaypoints() {
-		return waypoints;
+	public Map<String, Fix> getFixes() {
+		return fixs;
 	}
 
-	public void setWaypoints(Map<String, Waypoint> waypoints) {
-		this.waypoints = waypoints;
+	public void setFixes(Map<String, Fix> fixs) {
+		this.fixs = fixs;
 	}
 
 	public Map<String, Airway> getAirways() {
@@ -351,20 +354,41 @@ public class FMSDataManager {
 		Coordinate coordinate = new Coordinate(place.getLatitude(), place.getLongitude());
 		this.coordinates.put(coordinate, place);
 	}
+	
+	public Map<String,Navaid> searchNavaidStartsWith(String keySearched) {
+		
+		Map<String,Navaid> result = new LinkedHashMap<String, Navaid>();
+		
+		TreeMap<String, Navaid> subset = new TreeMap<String, Navaid>(this.getNavaids());
+		SortedMap<String, Navaid> found = subset.tailMap(keySearched);
+		
+		for (String key : found.keySet()) {
+			if ( key.startsWith(keySearched) ) {
+				result.put(key,found.get(key));
+			} else {
+				break;
+			}
+		}
+		
+		return result;
+	}
 
 	public static void main(String[] args) {
 		FMSDataManager fmsDataManager = new FMSDataManager();
-		
-		Airport sp = fmsDataManager.getAirports().get("SBSP");
-		Airport rj = fmsDataManager.getAirports().get("SBRJ");
-		Waypoint lodog = fmsDataManager.getWaypoints().get("LODOG-0");
-		Waypoint xokix = fmsDataManager.getWaypoints().get("XOKIX-0");
-		
-		System.out.println(xokix);
-		
-		
-		
-		
+
+		/*
+		 * Airport sp = fmsDataManager.getAirports().get("SBSP"); Airport rj =
+		 * fmsDataManager.getAirports().get("SBRJ"); Fix lodog =
+		 * fmsDataManager.getFixes().get("LODOG-0"); Fix xokix =
+		 * fmsDataManager.getFixes().get("XOKIX-0");
+		 */
+
+		Map<String,Navaid> list = fmsDataManager.searchNavaidStartsWith("TBE");
+		for(String k : list.keySet()) {
+			Navaid n = list.get(k);
+			System.out.println(k + " = " + n.getCode() + "," + n.getLatitude());
+		}
+
 	}
 
 }

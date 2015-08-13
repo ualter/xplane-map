@@ -3,14 +3,14 @@ package br.ujr.xplane.map.fmsdata;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
-public class Waypoint implements Place {
+public class Fix implements Place {
 
 	private int		index;
 	private String	code;
 	private float	latitude;
 	private float	longitude;
 
-	public Waypoint(int index, String code, float latitude, float longitude) {
+	public Fix(int index, String code, float latitude, float longitude) {
 		super();
 		this.index = index;
 		this.code = code;
@@ -18,7 +18,7 @@ public class Waypoint implements Place {
 		this.longitude = longitude;
 	}
 
-	public Waypoint(int index, String code, String latitude, String longitude) {
+	public Fix(int index, String code, String latitude, String longitude) {
 		super();
 		this.index = index;
 		this.code = code;
@@ -26,7 +26,7 @@ public class Waypoint implements Place {
 		this.longitude = Utils.parseCoord(longitude);
 	}
 
-	public Waypoint() {
+	public Fix() {
 		super();
 	}
 
@@ -76,7 +76,7 @@ public class Waypoint implements Place {
 	}
 
 	public PlaceType getType() {
-		return PlaceType.WAYPOINT;
+		return PlaceType.FIX;
 	}
 
 	@Override
@@ -86,8 +86,8 @@ public class Waypoint implements Place {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj instanceof Waypoint) {
-			Waypoint that = (Waypoint) obj;
+		if (obj instanceof Fix) {
+			Fix that = (Fix) obj;
 			if ((that.getIndex() == this.index) && (this.getCode().equalsIgnoreCase(that.getCode()))) {
 				return true;
 			}
