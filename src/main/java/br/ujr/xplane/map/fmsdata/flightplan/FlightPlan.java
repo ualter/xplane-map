@@ -73,8 +73,6 @@ public class FlightPlan {
 	}
 	
 	public boolean isValid() {
-		if ( this.departure == null ) return false;
-		if ( this.destination == null ) return false;
 		return true;
 	}
 

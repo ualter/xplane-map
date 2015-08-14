@@ -96,7 +96,8 @@ var color_index = 0;
 var navMap;
 var flightPlan = {};
 var flightPath; // an object google.maps.Polyline - representing the Flight Plan
-var flightPlanCoordinates; // array of google.maps.LatLng
+var markerAirport;
+var markerWaypoint;
 
 $.ajaxSetup({
 	cache : false
@@ -167,22 +168,34 @@ function checkFlightPlanBoxAndLoad() {
 		var text = $('textarea#boxFlightPlan').val();
 		if (text != flightplanText) {
 			flightplanText = text;
-			
-			var groups = "SBSP TBE LODOG KEVUN NAXOP UGRAD SBRJ".split(" ");
-			var waypoints = "";
-			if ( groups.length > 1 ) {
-			    for(var i = 1; i < (groups.length-1); i++) {
-				   waypoints += groups[i];
-			       if (waypoints.length > 1) {
-			        	waypoints += "+";
-			    	}
-			    }
+			var params = {};
+			if (flightPath != undefined) {
+				flightPath.setMap(null);
 			}
-			var params = {
-			    departure : groups[0],
-			    waypoints : waypoints,
-			    destination : groups[groups.length - 1]
-			};
+			if (markerAirport != undefined) {
+				markerAirport.setMap(null);
+			}
+			if (markerWaypoint != undefined) {
+				markerWaypoint.setMap(null);
+			}
+			
+			if ( flightplanText.length > 8 ) {
+				var groups = flightplanText.toUpperCase().split(" ");
+				var waypoints = "";
+				if ( groups.length > 1 ) {
+				    for(var i = 1; i < (groups.length-1); i++) {
+					   waypoints += groups[i];
+				       if (waypoints.length > 1) {
+				        	waypoints += "+";
+				    	}
+				    }
+				}
+				params = {
+				    departure : groups[0],
+				    waypoints : waypoints,
+				    destination : groups[groups.length - 1]
+				};
+			}
 			
 			$.getJSON("flightplan",params
 				)
@@ -199,67 +212,6 @@ function checkFlightPlanBoxAndLoad() {
 						});
 		}
 	}
-}
-
-function loadFlightPlanDataFake() {
-	// Loading Flight Plan Information
-	/*flightPlan = {
-		departure : {
-			id : "SBSP",
-			name : "Congonhas",
-			latlng : new google.maps.LatLng(-23.62611, -46.656387),
-			runways : [ {
-				number : "17R",
-				heading : "168",
-				length : 3.500,
-				frenquency : "120.00",
-				elevation : 2.300
-			}, {
-				number : "35R",
-				heading : "18",
-				length : 3.500,
-				frenquency : "140.20",
-				elevation : 2.300
-			} ]
-		},
-		waypoints : [ {
-			id : "BCO",
-			latlng : new google.maps.LatLng(-23.406428, -46.385464),
-			type : 1,
-			descr : "BONSUCESSO SAO PAULO",
-			freq : "116.00"
-		}, {
-			id : "TBE",
-			latlng : new google.maps.LatLng(-23.045636, -45.516708),
-			type : 2,
-			descr : "TAUBATE",
-			freq : "430"
-		}, {
-			id : "LODOG",
-			latlng : new google.maps.LatLng(-23.545668, -45.339333)
-		}, {
-			id : "XOKIX",
-			latlng : new google.maps.LatLng(-23.142668, -43.52017)
-		} ],
-		destination : {
-			id : "SBRJ",
-			name : "Santos Dumont",
-			latlng : new google.maps.LatLng(-22.91, -43.162777),
-			runways : [ {
-				number : "15L",
-				heading : "168",
-				length : 2.500,
-				frenquency : "120.00",
-				elevation : 300
-			}, {
-				number : "20L",
-				heading : "18",
-				length : 2.500,
-				frenquency : "140.20",
-				elevation : 300
-			} ]
-		}
-	}*/
 }
 
 function loadFlightPlan() {
@@ -287,7 +239,8 @@ function loadFlightPlan() {
 		totalWaypoints++;
 	}
 	arrCoord[totalWaypoints + 1] = destinationLatLng;
-	flightPlanCoordinates = arrCoord;
+	console.log(arrCoord);
+	var flightPlanCoordinates = arrCoord;
 
 	// Loading Flight Plan Polyline - Draw the line
 	flightPath = new google.maps.Polyline({
@@ -322,7 +275,7 @@ function loadFlightPlan() {
 }
 
 function markAirport(airport) {
-	var m1 = new MarkerWithLabel({
+	markerAirport = new MarkerWithLabel({
 		position : airport.latlng,
 		animation : google.maps.Animation.DROP,
 		icon : iconAirport,
@@ -349,13 +302,13 @@ function markAirport(airport) {
 	var infoM1 = new google.maps.InfoWindow({
 		content : infoContent
 	});
-	google.maps.event.addListener(m1, "mouseover", function(e) {
+	google.maps.event.addListener(markerAirport, "mouseover", function(e) {
 		infoM1.open(map, this);
 	});
-	google.maps.event.addListener(m1, "mouseout", function(e) {
+	google.maps.event.addListener(markerAirport, "mouseout", function(e) {
 		infoM1.close();
 	});
-	m1.setMap(map);
+	markerAirport.setMap(map);
 }
 
 function markWaypoint(waypoint) {
@@ -367,7 +320,7 @@ function markWaypoint(waypoint) {
 		iconWPT = iconNDB;
 	}
 
-	var mw1 = new MarkerWithLabel({
+	markerWaypoint = new MarkerWithLabel({
 		position : waypoint.latlng,
 		animation : google.maps.Animation.DROP,
 		icon : iconWPT,
@@ -426,13 +379,13 @@ function markWaypoint(waypoint) {
 	 * google.maps.event.addListener(mw1, "click", function(e) {
 	 * infoM1.open(map, this); });
 	 */
-	google.maps.event.addListener(mw1, "mouseover", function(e) {
+	google.maps.event.addListener(markerWaypoint, "mouseover", function(e) {
 		infoM1.open(map, this);
 	});
-	google.maps.event.addListener(mw1, "mouseout", function(e) {
+	google.maps.event.addListener(markerWaypoint, "mouseout", function(e) {
 		infoM1.close();
 	});
-	mw1.setMap(map);
+	markerWaypoint.setMap(map);
 }
 
 function precisionDecimalNumber(vlr) {

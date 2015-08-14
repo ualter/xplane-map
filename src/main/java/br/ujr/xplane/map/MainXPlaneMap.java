@@ -95,11 +95,11 @@ public class MainXPlaneMap {
 				sendJSONObject(t, planes);
 			} else if (req.startsWith("/flightplan")) {
 				System.out.println(req);
-				Map<String,String> parameters = extractParameters(req);
-				
+				Map<String, String> parameters = extractParameters(req);
+
 				FlightPlanRequest flightPlanRequest = new FlightPlanRequest(parameters);
 				System.out.println(flightPlanRequest);
-				
+
 				JSONObject flightPlanJSON = new JSONObject();
 
 				FlightPlan flightPlan = new FlightPlan();
@@ -111,36 +111,37 @@ public class MainXPlaneMap {
 					Airport destination = fms.getAirports().get(flightPlanRequest.getDestination());
 					if (destination != null) {
 						flightPlan.setDestination(destination);
-						
-						for(String wpt : flightPlanRequest.getWaypoints() ) {
-							
-							
-							Navaid navaid = null;
-							Fix    fix    = null;
-							
-							// Look first for a Navaid
-							for(int i = 0; i < 3; i++) {
-								navaid = fms.getNavaids().get(wpt + "-" + (i));
-								if ( navaid != null ) {
-									flightPlan.addNavaid(navaid);
-									break;
-								}
-							}
-							
-							// Then Look for a Fix if in Navaid registers was not found the wpt 
-							if (navaid == null) {
+
+						if (flightPlanRequest.getWaypoints() != null && flightPlanRequest.getWaypoints().length > 0) {
+							for (String wpt : flightPlanRequest.getWaypoints()) {
+								Navaid navaid = null;
+								Fix fix = null;
+
+								// Look first for a Navaid
 								for (int i = 0; i < 3; i++) {
-									fix = fms.getFixes().get(wpt + "-" + (i));
-									if (fix != null) {
-										flightPlan.addFix(fix);
+									navaid = fms.getNavaids().get(wpt + "-" + (i));
+									if (navaid != null) {
+										flightPlan.addNavaid(navaid);
 										break;
 									}
 								}
-							}
-							
-							// Nothing found, neither Navaid, nor Fix
-							if ( navaid == null && fix == null ) {
-								messages.addMessage(wpt + " was not found.");
+
+								// Then Look for a Fix if in Navaid registers
+								// was not found the wpt
+								if (navaid == null) {
+									for (int i = 0; i < 3; i++) {
+										fix = fms.getFixes().get(wpt + "-" + (i));
+										if (fix != null) {
+											flightPlan.addFix(fix);
+											break;
+										}
+									}
+								}
+
+								// Nothing found, neither Navaid, nor Fix
+								if (navaid == null && fix == null) {
+									messages.addMessage(wpt + " was not found.");
+								}
 							}
 						}
 					} else {
@@ -150,8 +151,8 @@ public class MainXPlaneMap {
 					messages.addMessage(flightPlanRequest.getDeparture() + " was not found.");
 				}
 
-				if ( flightPlan.isValid() ) {
-					sendJSONObject(t,flightPlan);
+				if (flightPlan.isValid()) {
+					sendJSONObject(t, flightPlan);
 				} else {
 					flightPlanJSON.put("messages", messages);
 					sendJSONObject(t, flightPlanJSON);
@@ -173,16 +174,18 @@ public class MainXPlaneMap {
 			}
 		}
 
-		private Map<String,String> extractParameters(String req) throws UnsupportedEncodingException {
-			Map<String,String> map = null;
+		private Map<String, String> extractParameters(String req) throws UnsupportedEncodingException {
+			Map<String, String> map = null;
 			if (req.contains("?")) {
-				map = new HashMap<String,String>();
-				String parameters[] = req.substring(req.indexOf("?")+1).split("&");
-				for(String param : parameters) {
+				map = new HashMap<String, String>();
+				String parameters[] = req.substring(req.indexOf("?") + 1).split("&");
+				for (String param : parameters) {
 					String pairs[] = param.split("=");
-					String name    = pairs[0];
-					String value   = URLDecoder.decode(pairs[1], "UTF-8");
-					map.put(name,value);
+					if (pairs.length > 1) {
+						String name = pairs[0];
+						String value = URLDecoder.decode(pairs[1], "UTF-8");
+						map.put(name, value);
+					}
 				}
 			}
 			return map;
@@ -194,12 +197,13 @@ public class MainXPlaneMap {
 			String response = out.toString();
 			sendHTTPResponse(t, response);
 		}
-		
+
 		private void sendJSONObject(HttpExchange t, Object bean) throws IOException {
 			ObjectMapper mapper = new ObjectMapper();
 			StringWriter out = new StringWriter();
 			mapper.configure(SerializationConfig.Feature.INDENT_OUTPUT, true);
-			//mapper.configure(SerializationConfig.Feature.WRAP_ROOT_VALUE, true);
+			// mapper.configure(SerializationConfig.Feature.WRAP_ROOT_VALUE,
+			// true);
 			mapper.writeValue(out, bean);
 			String response = out.toString();
 			sendHTTPResponse(t, response);
