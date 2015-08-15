@@ -3,7 +3,7 @@
 <head>
 <title>X-Plane Map</title>
 <link rel="stylesheet" type="text/css" href="map.css" media="all"/>
-<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCkS0sO3oxa5OOmH1ujaWYFLjKLOh6OSNw"></script>
+<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCkS0sO3oxa5OOmH1ujaWYFLjKLOh6OSNw&libraries=geometry"></script>
 <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.3.js"></script>
 <script type="text/javascript" src="http://www.google.com/jsapi"></script>
 <script type="text/javascript" src="map.js"></script>
@@ -12,11 +12,14 @@
 <body>
 	<div id="map-canvas">
 	</div>
-	<div id="flightplan-button">Flight Plan (Shift)</div>
+	<div id="flightplan-button">Flight Plan (Tab)</div>
 	<div id="flightplan-help">Fill the route with all the waypoints separated by spaces. This waypoints might be VOR, FIX or Airports.</div>
 	<div id="panel-fp">
 	    <div>
-			<textarea id="boxFlightPlan" rows="6" cols="61" placeholder="Enter your fligth plan..."></textarea>
+			<!-- <textarea id="boxFlightPlan" rows="6" cols="61" placeholder="Enter your fligth plan...">SBSP TBE ANISE LODOG XOKIX VUREP SBRJ</textarea> -->
+			<textarea id="boxFlightPlan" rows="6" cols="61" placeholder="Enter your fligth plan...">SBSP SAT LODOG XOKIX VUREP SBRJ</textarea>
+			<!-- <textarea id="boxFlightPlan" rows="6" cols="61" placeholder="Enter your fligth plan...">KSEA EDDG</textarea> -->
+			<!-- <textarea id="boxFlightPlan" rows="6" cols="61" placeholder="Enter your fligth plan...">KSEA LODOG SBRJ</textarea> -->
 		</div>
 	</div>
 	<div id="errorBox"></div>

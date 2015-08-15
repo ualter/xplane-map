@@ -75,11 +75,15 @@ public class FlightPlan {
 			longitude2 = w.getLongitude();
 			distance = calculateDistance(latitude1, longitude1, latitude2, longitude2);
 			bearing = calculateBearing(latitude1, longitude1, latitude2, longitude2);
-			infoRoute.setLatitude((float)latitude1);
-			infoRoute.setLongitude((float)longitude1);
+			infoRoute.setLatitude((float) latitude1);
+			infoRoute.setLongitude((float) longitude1);
 			infoRoute.setDistance(formatDistance(distance));
+			infoRoute.setDistanceNM((int) distance);
+			infoRoute.setBearingDegree((int) bearing);
 			infoRoute.setCurrentPoint(currentPoint);
 			infoRoute.setNextPoint(nextPoint);
+			infoRoute.setNextLatitude((float) latitude2);
+			infoRoute.setNextLongitude((float) longitude2);
 			infoRoute.setBearing(formatBearing(bearing));
 			listaInfoRoutes.add(infoRoute);
 			currentPoint = nextPoint;
@@ -94,14 +98,18 @@ public class FlightPlan {
 		distance = calculateDistance(latitude1, longitude1, latitude2, longitude2);
 		bearing = calculateBearing(latitude1, longitude1, latitude2, longitude2);
 		InfoRoute infoRoute = new InfoRoute();
-		infoRoute.setLatitude((float)latitude1);
-		infoRoute.setLongitude((float)longitude1);
+		infoRoute.setLatitude((float) latitude1);
+		infoRoute.setLongitude((float) longitude1);
 		infoRoute.setDistance(formatDistance(distance));
 		infoRoute.setCurrentPoint(currentPoint);
 		infoRoute.setNextPoint(nextPoint);
 		infoRoute.setBearing(formatBearing(bearing));
+		infoRoute.setNextLatitude((float) latitude2);
+		infoRoute.setNextLongitude((float) longitude2);
+		infoRoute.setDistanceNM((int) distance);
+		infoRoute.setBearingDegree((int) bearing);
 		listaInfoRoutes.add(infoRoute);
-		
+
 		this.infoRoute = new InfoRoute[listaInfoRoutes.size()];
 		listaInfoRoutes.toArray(this.infoRoute);
 	}
@@ -111,7 +119,7 @@ public class FlightPlan {
 	}
 
 	private String formatBearing(int b) {
-		return b + "d";
+		return String.valueOf(b);
 	}
 
 	public void setInfoRoute(InfoRoute[] infoRoute) {
@@ -145,24 +153,37 @@ public class FlightPlan {
 		return true;
 	}
 
+	public double calculateAngle(double a1, double a2) {
+		a1 = (a1 > 0) ? a1 : 360 + a1;
+		a2 = (a2 > 0) ? a2 : 360 + a2;
+		double angle = Math.abs(a1 - a2) + 180;
+		if (angle > 180) {
+			angle = 360 - angle;
+		}
+		return Math.abs(angle);
+	}
+
 	public static void main(String[] args) {
 		FMSDataManager fmsDataManager = new FMSDataManager();
 
 		Airport sp = fmsDataManager.getAirports().get("SBSP");
 		Airport rj = fmsDataManager.getAirports().get("SBRJ");
 		Navaid tbe = fmsDataManager.getNavaids().get("TBE-0");
+		Fix anise = fmsDataManager.getFixes().get("ANISE-0");
 		Fix lodog = fmsDataManager.getFixes().get("LODOG-0");
 		Fix vurep = fmsDataManager.getFixes().get("VUREP-0");
+		Fix xokix = fmsDataManager.getFixes().get("XOKIX-0");
 		Fix sidur = fmsDataManager.getFixes().get("SIDUR-0");
 
 		FlightPlan fp = new FlightPlan();
 		fp.setDeparture(sp);
 		fp.setDestination(rj);
 		fp.addNavaid(tbe);
+		fp.addFix(anise);
 		fp.addFix(lodog);
+		fp.addFix(xokix);
 		fp.addFix(vurep);
-		fp.addFix(sidur);
-		
+
 		fp.calculateInfoRoute();
 
 		InfoRoute[] route = fp.getInfoRoute();
@@ -192,23 +213,7 @@ public class FlightPlan {
 	}
 
 	private int calculateBearing(double lat1, double lon1, double lat2, double lon2) {
-		int degree = 180;
-		
-		lon1 = lon1 * Math.PI / degree; 
-		lon2 = lon2 * Math.PI / degree; 
-		lat1 = lat1 * Math.PI / degree; 
-		lat2 = lat2 * Math.PI / degree;
-		 
-		double y = Math.sin(lon2 - lon1) * Math.cos(lat2); 
-		double x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(lon2 - lon1); 
-		double brng = Math.atan2(y, x);
-		 
-		double result = brng / Math.PI * degree; 
-		System.out.println(result);
-		return (int) (result + 22);
-		 
-
-		/*double longitude1 = lon1;
+		double longitude1 = lon1;
 		double longitude2 = lon2;
 		double latitude1 = Math.toRadians(lat1);
 		double latitude2 = Math.toRadians(lat2);
@@ -216,10 +221,24 @@ public class FlightPlan {
 		double y = Math.sin(longDiff) * Math.cos(latitude2);
 		double x = Math.cos(latitude1) * Math.sin(latitude2) - Math.sin(latitude1) * Math.cos(latitude2) * Math.cos(longDiff);
 
-		double result = (Math.toDegrees(Math.atan2(y, x)) + 360) % 360;
-		System.out.println(result);
-		return (int)result;*/
-
+		int result = (int) ((Math.toDegrees(Math.atan2(y, x)) + 360) % 360);
+		// TODO: Check why it always we have the difference around of 22 comparing with the SkyVector
+		return result + 22;
 	}
+
+	@Override
+	public String toString() {
+		StringBuffer sb = new StringBuffer();
+		sb.append("[ From: ");
+		sb.append(this.departure.getIcaoId() + "|" + this.departure.getName() + "| (" + this.departure.getLatitude() + "," + this.departure.getLongitude() + ")");
+		sb.append("] ");
+		// waypoints?!
+		sb.append("[ To:");
+		sb.append(this.destination.getIcaoId() + "|" + this.destination.getName() + "| (" + this.destination.getLatitude() + "," + this.destination.getLongitude() + ")");
+		sb.append("]");
+		return sb.toString();
+	}
+	
+	
 
 }

@@ -10,7 +10,7 @@ public class Utils {
 	public static String	AIRWAYS_SOURCE		= PATH_SOURCE + "ATS.txt";
 
 	public static String parseFreq(String vlr) {
-		if ( vlr.length() > 5 ) {
+		if (vlr.length() > 5) {
 			return vlr.substring(0, 3) + "." + vlr.substring(3, 5);
 		} else {
 			return "---";
@@ -18,15 +18,30 @@ public class Utils {
 	}
 
 	public static float parseCoord(String vlr) {
-		if (vlr.startsWith("-")) {
-			return Float.parseFloat(vlr.substring(1, 3) + "." + vlr.substring(3)) * -1;
+		if (vlr.length() > 6) {
+			int start = vlr.length() - 6;
+			String decimal = vlr.substring(start);
+			String integer = vlr.substring(0, vlr.indexOf(decimal));
+			String coord = integer + "." + decimal;
+			return Float.parseFloat(coord);
 		} else {
-			if (vlr.length() > 3) {
-				return Float.parseFloat(vlr.substring(0, 2) + "." + vlr.substring(2));
-			} else {
-				return Float.parseFloat(vlr);
-			}
+			return Float.parseFloat(vlr);
 		}
+	}
+
+	public static void main(String[] args) {
+		/*String lat = "47449889";
+		String lng = "-122311778";
+
+		System.out.println(Utils.parseCoord(lat));
+		System.out.println(Utils.parseCoord(lng));*/
+		
+		int a = -276;
+		
+		if ( a < -275) {
+			System.out.println("menor");
+		}
+
 	}
 
 }

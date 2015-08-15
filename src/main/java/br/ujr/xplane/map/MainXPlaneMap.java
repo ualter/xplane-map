@@ -94,17 +94,11 @@ public class MainXPlaneMap {
 				}
 				sendJSONObject(t, planes);
 			} else if (req.startsWith("/flightplan")) {
-				System.out.println(req);
 				Map<String, String> parameters = extractParameters(req);
-
 				FlightPlanRequest flightPlanRequest = new FlightPlanRequest(parameters);
-				System.out.println(flightPlanRequest);
-
 				JSONObject flightPlanJSON = new JSONObject();
-
 				FlightPlan flightPlan = new FlightPlan();
 				FlightPlanLoadMessages messages = new FlightPlanLoadMessages();
-
 				Airport departure = fms.getAirports().get(flightPlanRequest.getDeparture());
 				if (departure != null) {
 					flightPlan.setDeparture(departure);
@@ -152,6 +146,9 @@ public class MainXPlaneMap {
 				}
 
 				if (flightPlan.isValid()) {
+					
+					System.out.println(flightPlan.toString());
+					
 					flightPlan.calculateInfoRoute();
 					sendJSONObject(t, flightPlan);
 				} else {

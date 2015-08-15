@@ -5,9 +5,13 @@ public class InfoRoute {
 	private String	nextPoint;
 	private String	currentPoint;
 	private String	distance;
+	private int     distanceNM;
 	private String	bearing;
-	private float   latitude;
-	private float   longitude;
+	private int 	bearingDegree;
+	private float	latitude;
+	private float	longitude;
+	private float	nextLatitude;
+	private float	nextLongitude;
 
 	public InfoRoute() {
 		super();
@@ -44,7 +48,7 @@ public class InfoRoute {
 	public void setCurrentPoint(String currentPoint) {
 		this.currentPoint = currentPoint;
 	}
-	
+
 	public float getLatitude() {
 		return latitude;
 	}
@@ -61,6 +65,40 @@ public class InfoRoute {
 		this.longitude = longitude;
 	}
 
+	public float getNextLatitude() {
+		return nextLatitude;
+	}
+
+	public void setNextLatitude(float nextLatitude) {
+		this.nextLatitude = nextLatitude;
+	}
+
+	public float getNextLongitude() {
+		return nextLongitude;
+	}
+
+	public void setNextLongitude(float nextLongitude) {
+		this.nextLongitude = nextLongitude;
+	}
+	
+	public int getDistanceNM() {
+		return distanceNM;
+	}
+
+	public void setDistanceNM(int distanceNM) {
+		this.distanceNM = distanceNM;
+	}
+	
+	
+
+	public int getBearingDegree() {
+		return bearingDegree;
+	}
+
+	public void setBearingDegree(int bearingDegree) {
+		this.bearingDegree = bearingDegree;
+	}
+
 	@Override
 	public String toString() {
 		StringBuffer sb = new StringBuffer();
@@ -73,7 +111,5 @@ public class InfoRoute {
 		sb.append(nextPoint);
 		return sb.toString();
 	}
-	
-	
 
 }

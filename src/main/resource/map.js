@@ -10,7 +10,6 @@ if (navigator.geolocation) {
       };
     });
 }
-
 var mapOptions = {
 	center : {
 		lat : 0,
@@ -98,21 +97,17 @@ var iconNDB = {
 var planeList = {};
 var refreshControlPanel = false;
 var planeToFollow = null;
-var colors = [ "#26764E", "#F08526", "#9CFF54", "#721B49", "#A7D8F8",
-		"#2AFDBC", "#FBE870", "#711302", "#2572C2", "#1C271D", "#632E85",
-		"#1E5F7A", "#D8B2F5", "#D307A2", "#F391B5", "#F180F5", "#3A1E2E",
-		"#AE7707", "#3E3D0E", "#6AB06E" ];
+var colors = [ "#26764E", "#F08526", "#9CFF54", "#721B49", "#A7D8F8","#2AFDBC", "#FBE870", "#711302", "#2572C2", "#1C271D", "#632E85",
+		"#1E5F7A", "#D8B2F5", "#D307A2", "#F391B5", "#F180F5", "#3A1E2E","#AE7707", "#3E3D0E", "#6AB06E" ];
 var color_index = 0;
 var navMap;
 var flightPlan = {};
 var flightPath; // an object google.maps.Polyline - representing the Flight Plan
-var markerAirport;
-var markerWaypoint;
-var markerLabelRoute;
+var markers = [];
 
 $.ajaxSetup({
 	cache : false
-}); // else IE caches the data request...
+});
 
 function initialize() {
 
@@ -123,13 +118,7 @@ function initialize() {
 	});
 
 	$('body').keyup(function(e) {
-		if (e.keyCode == 78) {
-			if (navMap.getOpacity()) {
-				hideNavaids();
-			} else
-				showNavaids();
-		}
-		if (e.keyCode == 16) {
+		if (e.keyCode == 9) {
 			toggleFlightPanel();
 		}
 	});
@@ -137,10 +126,9 @@ function initialize() {
 	updatePosition();
 	setInterval(updatePosition, period);
 	setInterval(checkFlightPlanBoxAndLoad, period);
-	// load initial plane data and place planes
 
 	// nav data overlays
-	navMap = new google.maps.ImageMapType({
+	/*navMap = new google.maps.ImageMapType({
 		getTileUrl : function(coord, zoom) {
 			tileSize = 256 / Math.pow(2, zoom);
 			west = coord.x * tileSize;
@@ -160,9 +148,9 @@ function initialize() {
 					northEast.lat().toFixed(4), '&south=',
 					southWest.lat().toFixed(4), '&east=',
 					northEast.lng().toFixed(4), '&west=',
-					southWest.lng().toFixed(4) /*
+					southWest.lng().toFixed(4) 
 												 * , '&type=APT'
-												 */].join('');
+												 ].join('');
 		},
 		tileSize : new google.maps.Size(256, 256),
 		minZoom : 6,
@@ -170,7 +158,7 @@ function initialize() {
 	});
 
 	map.overlayMapTypes.push(navMap);
-	navMap.setOpacity(0);
+	navMap.setOpacity(0);*/
 }
 
 var flightplanText = 'none';
@@ -180,15 +168,11 @@ function checkFlightPlanBoxAndLoad() {
 		if (text != flightplanText) {
 			flightplanText = text;
 			var params = {};
+			
 			if (flightPath != undefined) {
 				flightPath.setMap(null);
 			}
-			if (markerAirport != undefined) {
-				markerAirport.setMap(null);
-			}
-			if (markerWaypoint != undefined) {
-				markerWaypoint.setMap(null);
-			}
+			clearMarkers();
 			
 			if ( flightplanText.length > 8 ) {
 				var groups = flightplanText.toUpperCase().split(" ");
@@ -255,7 +239,7 @@ function loadFlightPlan() {
 	// Loading Flight Plan Polyline - Draw the line
 	flightPath = new google.maps.Polyline({
 		path : flightPlanCoordinates,
-		geodesic : true,
+		geodesic : false,
 		strokeColor : '#0000FF',
 		strokeOpacity : 0.5,
 		strokeWeight : 6
@@ -284,11 +268,17 @@ function loadFlightPlan() {
 	var index = 0;
 	while (index < flightPlan.infoRoute.length) {
 		labelRoute = {
+			distanceNM : flightPlan.infoRoute[index].distanceNM,
 			distance : flightPlan.infoRoute[index].distance,
 			bearing : flightPlan.infoRoute[index].bearing,
+			bearingDegree : flightPlan.infoRoute[index].bearingDegree,
 			latlng : new google.maps.LatLng(
 						flightPlan.infoRoute[index].latitude,
-						flightPlan.infoRoute[index].longitude)
+						flightPlan.infoRoute[index].longitude),
+			nextLatlng : new google.maps.LatLng(
+					flightPlan.infoRoute[index].nextLatitude,
+					flightPlan.infoRoute[index].nextLongitude),
+			rotate : flightPlan.infoRoute[index].bearing			
 		}
 		markLabelRoute(labelRoute);
 		index++;
@@ -296,23 +286,50 @@ function loadFlightPlan() {
 
 	var panFlightPlan = new google.maps.LatLngBounds(departureLatLng, destinationLatLng);
 	map.fitBounds(panFlightPlan);
+	map.panToBounds(panFlightPlan);
+}
+
+function saveMark(m) {
+	markers.push(m);
+}
+function clearMarkers() {
+  for (var i = 0; i < markers.length; i++) {
+    markers[i].setMap(null);
+  }
 }
 
 function markLabelRoute(labelRoute) {
-	markerLabelRoute = new MarkerWithLabel({
-		position : labelRoute.latlng,
+	//var distLabel = labelRoute.distanceNM * 1.852; // convert nm to meters
+	//var hdgLabel = labelRoute.bearingDegree - 22;
+	var distLabel = 24000; 
+	var hdgLabel = google.maps.geometry.spherical.computeHeading(labelRoute.latlng, labelRoute.nextLatlng); 
+	var offset = google.maps.geometry.spherical.computeOffset(labelRoute.latlng, distLabel, hdgLabel, 6371000);
+	//console.log("from " + labelRoute.latlng + ", to " + offset + " in " + distLabel + "nm");
+	//var angleRotate = (labelRoute.bearing - 53) * -1;
+	var angleRotate = hdgLabel - 90;
+	if ( angleRotate > -270 && angleRotate < -90 ) {
+		 angleRotate = angleRotate - 180;
+	}
+	var label = labelRoute.bearing + "&deg " + labelRoute.distance;
+	var x = 23;
+	var y = 0;
+	var anchor = new google.maps.Point(x, y);
+	var markerLabelRoute = new MarkerWithLabel({
+		position : offset,
 		animation : google.maps.Animation.DROP,
-		labelContent : labelRoute.distance,
-		labelAnchor : new google.maps.Point(-30, 10),
-		labelClass : "labelsWaypoint",
+		labelContent : label,
+		labelAnchor : anchor,
+		labelClass : "labelsInfoRoute",
+		clickable : false,
 		icon : iconLabelRoute,
-		rotate : 40
+		rotate : angleRotate
 	});
 	markerLabelRoute.setMap(map);
+	saveMark(markerLabelRoute);
 }
 
 function markAirport(airport) {
-	markerAirport = new MarkerWithLabel({
+	var markerAirport = new MarkerWithLabel({
 		position : airport.latlng,
 		animation : google.maps.Animation.DROP,
 		icon : iconAirport,
@@ -346,6 +363,7 @@ function markAirport(airport) {
 		infoM1.close();
 	});
 	markerAirport.setMap(map);
+	saveMark(markerAirport);
 }
 
 function markWaypoint(waypoint) {
@@ -357,7 +375,7 @@ function markWaypoint(waypoint) {
 		iconWPT = iconNDB;
 	}
 
-	markerWaypoint = new MarkerWithLabel({
+	var markerWaypoint = new MarkerWithLabel({
 		position : waypoint.latlng,
 		animation : google.maps.Animation.DROP,
 		icon : iconWPT,
@@ -423,6 +441,7 @@ function markWaypoint(waypoint) {
 		infoM1.close();
 	});
 	markerWaypoint.setMap(map);
+	saveMark(markerWaypoint);
 }
 
 function precisionDecimalNumber(vlr) {
@@ -431,139 +450,106 @@ function precisionDecimalNumber(vlr) {
 }
 
 function updatePosition() {
-	$
-			.getJSON(
-					"data",
-					function(data) {
-						if ($.isEmptyObject(data)) {
-							showError("No planes detected at X-Plane's UDP traffic port 49003. "
-									+ "Please check the settings at the X-Plane's Net Connections menu.");
-						}
+	$.getJSON(
+			"data",
+			function(data) {
+				if ($.isEmptyObject(data)) {
+					showError("Listening at X-Plane's UDP traffic port 49003. "
+							+ "Please check the settings at the X-Plane's Net Connections menu.");
+				}
 
-						// delete all absent planes
-						for ( var ip in planeList) {
-							if (!(ip in data)) {
-								deletePlane(ip);
-								refreshControlPanel = true;
-							}
-						}
+				// delete all absent planes
+				for ( var ip in planeList) {
+					if (!(ip in data)) {
+						deletePlane(ip);
+						refreshControlPanel = true;
+					}
+				}
 
-						// for current and new planes
-						for ( var ip in data) {
+				// for current and new planes
+				for ( var ip in data) {
 
-							// if new plane
-							if (!(ip in planeList)) {
-								color = nextColor();
+					// if new plane
+					if (!(ip in planeList)) {
+						color = nextColor();
 
-								markerOptions.icon.fillColor = color;
-								planeList[ip] = {
-									name : ip.replace(/-/g, '.'),
-									lon : 0,
-									lat : 0,
-									alt : data[ip].alt,
-									marker : new google.maps.Marker(
-											markerOptions),
-									trace : new google.maps.Polyline(
-											polyOptions),
-									info : new google.maps.InfoWindow(),
-									color : color
+						markerOptions.icon.fillColor = color;
+						planeList[ip] = {
+							name : ip.replace(/-/g, '.'),
+							lon : 0,
+							lat : 0,
+							alt : data[ip].alt,
+							marker : new google.maps.Marker(
+									markerOptions),
+							trace : new google.maps.Polyline(
+									polyOptions),
+							info : new google.maps.InfoWindow(),
+							color : color
 
-								};
-								// setup marker
-								planeList[ip].marker.setMap(map);
-								planeList[ip].marker.ip = ip; // this is
-								// necessary for
-								// the browser
-								// to know which
-								// info window
-								// to open
-								// setup event
-								planeList[ip].infoWindowListener = google.maps.event
-										.addListener(
-												planeList[ip].marker,
-												'click',
-												function() {
-													planeList[this.ip].info
-															.open(
-																	map,
-																	planeList[this.ip].marker);
-												});
-
-								// setup polyline
-								planeList[ip].trace.setMap(map);
-
-								planeToFollow = ip;
-								refreshControlPanel = true;
-							}
-
-							newLat = data[ip].lat;
-							newLon = data[ip].lon;
-							planeList[ip].alt = data[ip].alt;
-
-							var newPoint = new google.maps.LatLng(newLat,
-									newLon);
-
-							// set marker position to new point
-							planeList[ip].marker.setPosition(newPoint);
-
-							// rotate marker
-							hdg = bearing(planeList[ip].lon, planeList[ip].lat,
-									newLon, newLat);
-							var icon = planeList[ip].marker.getIcon();
-							icon.rotation = hdg;
-							planeList[ip].marker.setIcon(icon);
-
-							// calculate speed
-							spd = distance(planeList[ip].lon,
-									planeList[ip].lat, newLon, newLat)
-									/ (period / 1000) * 3600 / 1.852;
-
-							// add new point to line
-							planeList[ip].trace.getPath().push(newPoint);
-
-							// set info window content
-							planeList[ip].info
-									.setContent('<div style="margin: 0; width: 150px;"><strong>'
-											+ planeList[ip].name
-											+ '</strong><br>'
-											+ planeList[ip].alt.toFixed()
-											+ ' ft MSL / '
-											+ (hdg + 360).toFixed()
-											% 360
-											+ '&deg;<br>'
-											+ 'GS '
-											+ spd.toFixed() + ' kts</div>');
-
-							// set table content
-							$('.planeRow[data-ip="' + ip + '"] .altText').html(
-									planeList[ip].alt.toFixed() + ' ft');
-							$('.planeRow[data-ip="' + ip + '"] .hdgText').html(
-									(hdg + 360).toFixed() % 360 + '&deg;');
-							$('.planeRow[data-ip="' + ip + '"] .spdText').html(
-									'GS ' + spd.toFixed() + ' kts');
-
-							// save plane data
-							planeList[ip].lon = newLon;
-							planeList[ip].lat = newLat;
-							planeList[ip].hdg = hdg;
-							planeList[ip].spd = spd;
-						}
-
-						// move map if checkbox checked
-						if (planeToFollow != null)
-							map.panTo(new google.maps.LatLng(
-									planeList[planeToFollow].lat,
-									planeList[planeToFollow].lon));
-
-						if (refreshControlPanel) {
-							refreshCP();
-						}
-
-					})
-			.error(
-					function() {
-						showError('There seems to be an issue with the script, is it still running ?')
-					});
+						};
+						planeList[ip].marker.setMap(map);
+						planeList[ip].marker.ip = ip; 
+						planeList[ip].infoWindowListener = google.maps.event
+								.addListener(
+										planeList[ip].marker,
+										'click',
+										function() {
+											planeList[this.ip].info
+													.open(
+															map,
+															planeList[this.ip].marker);
+										});
+						planeList[ip].trace.setMap(map);
+						planeToFollow = ip;
+						refreshControlPanel = true;
+					}
+					newLat = data[ip].lat;
+					newLon = data[ip].lon;
+					planeList[ip].alt = data[ip].alt;
+					var newPoint = new google.maps.LatLng(newLat,newLon);
+					planeList[ip].marker.setPosition(newPoint);
+					hdg = bearing(planeList[ip].lon, planeList[ip].lat,newLon, newLat);
+					var icon = planeList[ip].marker.getIcon();
+					icon.rotation = hdg;
+					planeList[ip].marker.setIcon(icon);
+					// speed
+					spd = distance(planeList[ip].lon,planeList[ip].lat, newLon, newLat)	/ (period / 1000) * 3600 / 1.852;
+					// add new point to line
+					planeList[ip].trace.getPath().push(newPoint);
+					// set info window content
+					planeList[ip].info
+							.setContent('<div style="margin: 0; width: 150px;"><strong>'
+									+ planeList[ip].name
+									+ '</strong><br>'
+									+ planeList[ip].alt.toFixed()
+									+ ' ft MSL / '
+									+ (hdg + 360).toFixed()
+									% 360
+									+ '&deg;<br>'
+									+ 'GS '
+									+ spd.toFixed() + ' kts</div>');
+					// set table content
+					$('.planeRow[data-ip="' + ip + '"] .altText').html(planeList[ip].alt.toFixed() + ' ft');
+					$('.planeRow[data-ip="' + ip + '"] .hdgText').html((hdg + 360).toFixed() % 360 + '&deg;');
+					$('.planeRow[data-ip="' + ip + '"] .spdText').html('GS ' + spd.toFixed() + ' kts');
+					// save plane data
+					planeList[ip].lon = newLon;
+					planeList[ip].lat = newLat;
+					planeList[ip].hdg = hdg;
+					planeList[ip].spd = spd;
+				}
+				// move map if checkbox checked
+				if (planeToFollow != null) {
+					map.panTo(new google.maps.LatLng(planeList[planeToFollow].lat,planeList[planeToFollow].lon));
+				}
+				/*if (refreshControlPanel) {
+					refreshCP();
+				}*/
+			})
+	.error(
+			function() {
+				showError('Ops! No communication with the server.')
+			});
 
 }
 
@@ -605,7 +591,7 @@ function deletePlane(ip) {
 }
 
 // refresh control panel
-function refreshCP() {
+/*function refreshCP() {
 	$('.planeRow').remove();
 	for ( var ip in planeList) {
 		$("#planesTable")
@@ -706,7 +692,7 @@ function refreshCP() {
 
 	refreshControlPanel = false;
 
-}
+}*/
 
 // alert() equivalent
 function showError(text) {
