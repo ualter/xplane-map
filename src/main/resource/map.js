@@ -65,6 +65,16 @@ var iconWaypoint = {
 	fillOpacity : 1,
 };
 
+var iconLabelRoute = {
+	path : "m96,44",
+	scale : 1,
+	strokeColor : '#FFFFFF',
+	strokeOpacity : 1,
+	strokeWeight : 1,
+	fillColor : 'white',
+	fillOpacity : 100,
+};
+
 var iconVOR = {
 	path : google.maps.SymbolPath.CIRCLE,
 	scale : 7,
@@ -98,6 +108,7 @@ var flightPlan = {};
 var flightPath; // an object google.maps.Polyline - representing the Flight Plan
 var markerAirport;
 var markerWaypoint;
+var markerLabelRoute;
 
 $.ajaxSetup({
 	cache : false
@@ -239,7 +250,6 @@ function loadFlightPlan() {
 		totalWaypoints++;
 	}
 	arrCoord[totalWaypoints + 1] = destinationLatLng;
-	console.log(arrCoord);
 	var flightPlanCoordinates = arrCoord;
 
 	// Loading Flight Plan Polyline - Draw the line
@@ -269,9 +279,36 @@ function loadFlightPlan() {
 		runways : flightPlan.destination.arrayRunways
 	}
 	markAirport(destination);
+	
+	// Mark Labels Bearing/Distance
+	var index = 0;
+	while (index < flightPlan.infoRoute.length) {
+		labelRoute = {
+			distance : flightPlan.infoRoute[index].distance,
+			bearing : flightPlan.infoRoute[index].bearing,
+			latlng : new google.maps.LatLng(
+						flightPlan.infoRoute[index].latitude,
+						flightPlan.infoRoute[index].longitude)
+		}
+		markLabelRoute(labelRoute);
+		index++;
+	}
 
 	var panFlightPlan = new google.maps.LatLngBounds(departureLatLng, destinationLatLng);
 	map.fitBounds(panFlightPlan);
+}
+
+function markLabelRoute(labelRoute) {
+	markerLabelRoute = new MarkerWithLabel({
+		position : labelRoute.latlng,
+		animation : google.maps.Animation.DROP,
+		labelContent : labelRoute.distance,
+		labelAnchor : new google.maps.Point(-30, 10),
+		labelClass : "labelsWaypoint",
+		icon : iconLabelRoute,
+		rotate : 40
+	});
+	markerLabelRoute.setMap(map);
 }
 
 function markAirport(airport) {

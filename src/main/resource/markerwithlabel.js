@@ -57,7 +57,7 @@ function MarkerLabel_(marker, crossURL, handCursorURL) {
   // Code is included here to ensure the veil is always exactly the same size as the label.
   this.eventDiv_ = document.createElement("div");
   this.eventDiv_.style.cssText = this.labelDiv_.style.cssText;
-
+  
   // This is needed for proper behavior on MSIE:
   this.eventDiv_.setAttribute("onselectstart", "return false;");
   this.eventDiv_.setAttribute("ondragstart", "return false;");
@@ -361,7 +361,7 @@ MarkerLabel_.prototype.setStyles = function () {
   // Apply style values from the style sheet defined in the labelClass parameter:
   this.labelDiv_.className = this.marker_.get("labelClass");
   this.eventDiv_.className = this.labelDiv_.className;
-
+  
   // Clear existing inline style values:
   this.labelDiv_.style.cssText = "";
   this.eventDiv_.style.cssText = "";
@@ -373,6 +373,22 @@ MarkerLabel_.prototype.setStyles = function () {
       this.eventDiv_.style[i] = labelStyle[i];
     }
   }
+  
+
+    if (this.marker_.get("rotate") != undefined) {
+		this.labelDiv_.style.webkitTransform = "rotate(" + this.marker_.get("rotate") + "deg)";
+		this.labelDiv_.style.mozTransform = "rotate(" + this.marker_.get("rotate") + "deg)";
+		this.labelDiv_.style.msTransform = "rotate(" + this.marker_.get("rotate") + "deg)";
+		this.labelDiv_.style.oTransform = "rotate(" + this.marker_.get("rotate") + "deg)";
+		this.labelDiv_.style.transform = "rotate(" + this.marker_.get("rotate") + "deg)";
+
+		this.eventDiv_.style.webkitTransform = "rotate(" + this.marker_.get("rotate") + "deg)";
+		this.eventDiv_.style.mozTransform = "rotate(" + this.marker_.get("rotate") + "deg)";
+		this.eventDiv_.style.msTransform = "rotate(" + this.marker_.get("rotate") + "deg)";
+		this.eventDiv_.style.oTransform = "rotate(" + this.marker_.get("rotate") + "deg)";
+		this.eventDiv_.style.transform = "rotate(" + this.marker_.get("rotate") + "deg)";
+	}
+  
   this.setMandatoryStyles();
 };
 
@@ -395,7 +411,7 @@ MarkerLabel_.prototype.setMandatoryStyles = function () {
   this.eventDiv_.style.opacity = 0.01; // Don't use 0; DIV won't be clickable on MSIE
   this.eventDiv_.style.MsFilter = "\"progid:DXImageTransform.Microsoft.Alpha(opacity=1)\"";
   this.eventDiv_.style.filter = "alpha(opacity=1)"; // For MSIE
-
+  
   this.setAnchor();
   this.setPosition(); // This also updates z-index, if necessary.
   this.setVisible();
@@ -522,6 +538,8 @@ function MarkerWithLabel(opt_options) {
   opt_options.labelClass = opt_options.labelClass || "markerLabels";
   opt_options.labelStyle = opt_options.labelStyle || {};
   opt_options.labelInBackground = opt_options.labelInBackground || false;
+  opt_options.rotate = opt_options.rotate || undefined;
+  
   if (typeof opt_options.labelVisible === "undefined") {
     opt_options.labelVisible = true;
   }

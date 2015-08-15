@@ -152,6 +152,7 @@ public class MainXPlaneMap {
 				}
 
 				if (flightPlan.isValid()) {
+					flightPlan.calculateInfoRoute();
 					sendJSONObject(t, flightPlan);
 				} else {
 					flightPlanJSON.put("messages", messages);

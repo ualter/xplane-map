@@ -132,3 +132,11 @@ html, body, #map-canvas {
 	color: blue;
 	font-weight: bold;
 }
+
+.rotate {
+     -webkit-transform : rotate(66deg); 
+    -moz-transform : rotate(66deg); 
+    -ms-transform : rotate(66deg); 
+    -o-transform : rotate(66deg); 
+    transform : rotate(66deg); 
+}
