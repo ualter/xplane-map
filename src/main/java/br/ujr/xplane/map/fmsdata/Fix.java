@@ -68,7 +68,7 @@ public class Fix implements Place {
 
 	@Override
 	public String toString() {
-		return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE).append("code", this.getCode()).append("latitude", this.getLatitude()).append("longitude", this.getLongitude()).toString();
+		return this.code + " (" + this.latitude + "," + this.longitude + ")";
 	}
 
 	public String getName() {

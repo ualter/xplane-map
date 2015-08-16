@@ -125,7 +125,7 @@ function initialize() {
 
 	updatePosition();
 	setInterval(updatePosition, period);
-	setInterval(checkFlightPlanBoxAndLoad, period);
+	setInterval(checkFlightPlanBoxAndLoad, 2000);
 
 	// nav data overlays
 	/*navMap = new google.maps.ImageMapType({
@@ -253,7 +253,7 @@ function loadFlightPlan() {
 		latlng : departureLatLng,
 		runways : flightPlan.departure.arrayRunways
 	}
-	markAirport(departure);
+	markAirport(departure,'departure');
 
 	// Mark for the Airport Destination
 	destination = {
@@ -262,7 +262,7 @@ function loadFlightPlan() {
 		latlng : destinationLatLng,
 		runways : flightPlan.destination.arrayRunways
 	}
-	markAirport(destination);
+	markAirport(destination,'destination');
 	
 	// Mark Labels Bearing/Distance
 	var index = 0;
@@ -278,7 +278,10 @@ function loadFlightPlan() {
 			nextLatlng : new google.maps.LatLng(
 					flightPlan.infoRoute[index].nextLatitude,
 					flightPlan.infoRoute[index].nextLongitude),
-			rotate : flightPlan.infoRoute[index].bearing			
+			rotate : flightPlan.infoRoute[index].bearing,
+			nextPoint : flightPlan.infoRoute[index].nextPoint,
+			currentPoint : flightPlan.infoRoute[index].currentPoint,
+			compassHeading : flightPlan.infoRoute[index].compassHeading
 		}
 		markLabelRoute(labelRoute);
 		index++;
@@ -310,7 +313,7 @@ function markLabelRoute(labelRoute) {
 	if ( angleRotate > -270 && angleRotate < -90 ) {
 		 angleRotate = angleRotate - 180;
 	}
-	var label = labelRoute.bearing + "&deg " + labelRoute.distance;
+	var label = labelRoute.bearing + "&deg " + numeral(labelRoute.distance).format('0,0') + "nm";
 	var x = 23;
 	var y = 0;
 	var anchor = new google.maps.Point(x, y);
@@ -325,38 +328,52 @@ function markLabelRoute(labelRoute) {
 		rotate : angleRotate
 	});
 	
-	var infoContent = "<b>Info</b>";
-	infoContent += "<table width='100%' class='runwayTable' cellspacing='0' cellpadding='0'>";
+	var infoContent = "<table width='100%' border=0 class='runwayTable' cellspacing='0' cellpadding='0'>";
+	infoContent += "<tr><td colspan='2'>";
+	
+	infoContent += "<table  width='100%' border=0 cellspacing='0' cellpadding='0'>";
+	infoContent += "<tr><td valign='middle' width='30px'><img src='arrow.png'></td>";
+	infoContent += "<td valign='middle' width='150px'>";
+	infoContent += "&nbsp;&nbsp;&nbsp;Route:<br><b>&nbsp;&nbsp;" + labelRoute.currentPoint + 
+				   "</b>&nbsp;to&nbsp;<b>" + labelRoute.nextPoint + "</b></td>";
+	infoContent += "</td></tr></table>";
+	
+	infoContent += "</td></tr>";
+	infoContent += "<tr><td colspan='2'><hr></td></tr>";
+	infoContent += "<tr><td width='60px'>";
+	infoContent +=   "Distance:</td><td> <span class='routeInfo'>" + 
+								numeral(labelRoute.distance).format('0,0') + "nm</span>&nbsp;&nbsp;/&nbsp;&nbsp;" + 
+	                           "<span class='routeInfo'>" + 
+	                           numeral(Math.ceil(labelRoute.distanceNM / 0.53996)).format('0,0') +
+	                           "km</span>";
+	infoContent += "</td></tr>";
+	infoContent += "<tr><td>";
+	infoContent +=   "Heading:</td><td> <span class='routeInfo'>" + labelRoute.bearing + "&deg</span>&nbsp;&nbsp;/&nbsp;&nbsp;" + 
+    				          "<span class='routeInfo'>" + labelRoute.compassHeading + "</span>";
+	infoContent += "</td></tr>";
 	infoContent += "</table>";
 	var infoBox = new google.maps.InfoWindow({
-		content: '<div id="iw_content">' + infoContent + '</div>'
-		
+		content: '<div id="iw_content">' + infoContent + '</div>',
+		pixelOffset: new google.maps.Size(-30,-25,"px","px")
 	});
 	google.maps.event.addListener(markerLabelRoute, "mouseover", function(e) {
 		infoBox.open(map, this);
 	});
 	google.maps.event.addListener(markerLabelRoute, "mouseout", function(e) {
+		changeColorInfoBox(el,"rgb(255,255,255)");
 		infoBox.close();
 	});
 	google.maps.event.addListener(infoBox, 'domready', function () {
-		el = document.getElementById('iw_content').parentNode.parentNode.parentNode.parentNode;
-	    divEl = el.firstChild;
-	    child1 = divEl.firstChild;
-	    child3 = child1.nextElementSibling.nextElementSibling;
-	    if ( child3 != undefined ) {
-	    	child1.style.visibility = "hidden";
-	    	child3.style.visibility = "hidden";
-		    // Remove Close Button
-		    divCloseButton = divEl.parentNode.firstChild.nextElementSibling.nextElementSibling;
-		    divCloseButton.style.visibility = "hidden";
-	    }
+	    el = document.getElementById('iw_content').parentNode.parentNode.parentNode.parentNode;
+		visibilityArrowInfoBox(el,"hidden");
+		changeColorInfoBox(el,"rgba(127,255,212,0.82)");
 	});
 	
 	markerLabelRoute.setMap(map);
 	saveMark(markerLabelRoute);
 }
 
-function markAirport(airport) {
+function markAirport(airport,type) {
 	var markerAirport = new MarkerWithLabel({
 		position : airport.latlng,
 		animation : google.maps.Animation.DROP,
@@ -366,8 +383,19 @@ function markAirport(airport) {
 		labelClass : "labelsAirport"
 	});
 
-	var infoContent = "<b>" + airport.id + "</b> - " + airport.name + "<hr/>";
-	infoContent += "<table width='100%' class='runwayTable' cellspacing='0' cellpadding='0'>";
+	var image = "<img src='takeoff.png'/>";
+	if ( type == 'destination' ) {
+		image = "<img src='landing.png'/>";
+	}
+	var infoContent = "";
+	infoContent += "<table border=0 width='100%' class='runwayTable' cellspacing='0' cellpadding='0'>";
+	infoContent += "<tr><td width='60px' align='left'>" + image + "</td>";
+	infoContent += "<td>";
+	infoContent += "<b>" + airport.id + "</b> - " + airport.name;
+	infoContent += "</td></tr>";
+	infoContent += "<tr><td colspan='4'><hr></td></tr>";
+	infoContent += "</table>";
+	infoContent += "<table width='100%' border=0 class='runwayTable' cellspacing='0' cellpadding='0'>";
 	for (var i = 0; i < airport.runways.length; i++) {
 		infoContent += "<tr>"
 				+ " <td>Runway <span class='runwayInfo'>"
@@ -377,7 +405,9 @@ function markAirport(airport) {
 				+ airport.runways[i].heading
 				+ "<font size='2px'>&deg;</font></span></td>"
 				+ " <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Frequency: <span class='runwayInfo'>"
-				+ airport.runways[i].frequency + "</span><br/></td>" + "</tr>";
+				+ airport.runways[i].frequency + "</span><br/></td>"
+				+ " <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Elevation: <span class='runwayInfo'>"
+				+ numeral(airport.runways[i].elevation).format('0,0') + " ft</span><br/></td>" + "</tr>";
 	}
 	infoContent += "</table>";
 
@@ -419,7 +449,7 @@ function markWaypoint(waypoint) {
 	});
 	if (waypoint.type == 'VOR' || waypoint.type == 'NDB') {
 		// VOR and NDB
-		infoContent = "<table border=0 class='vorTable' cellspacing='0' cellpadding='0' width='230px'>";
+		infoContent = "<table border=0 class='vorTable' cellspacing='0' cellpadding='0' width='330px'>";
 		infoContent += "<tr>";
 		infoContent += " <td valign='middle' colspan=2>";
 		infoContent += "  <table border=0 class='vorTable' cellspacing='0' cellpadding='0'><tr><td>";
@@ -484,6 +514,11 @@ function markWaypoint(waypoint) {
 	saveMark(markerWaypoint);
 }
 
+function changeColorInfoBox(el,color) {
+	divColor = el.firstChild.firstChild.nextElementSibling.nextElementSibling.nextElementSibling;
+	divColor.style.background = color;
+}
+
 function visibilityArrowInfoBox(el,status) {
 	divEl = el.firstChild;
     child1 = divEl.firstChild;
@@ -500,7 +535,6 @@ function visibilityArrowInfoBox(el,status) {
 
 function precisionDecimalNumber(vlr) {
 	return parseFloat(Math.round(vlr * 100000) / 100000).toFixed(5);
-	;
 }
 
 function updatePosition() {

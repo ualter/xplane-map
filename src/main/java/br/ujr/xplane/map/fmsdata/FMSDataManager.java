@@ -32,7 +32,7 @@ public class FMSDataManager {
 
 		// Temporarily
 		ch.qos.logback.classic.Logger root = (ch.qos.logback.classic.Logger) org.slf4j.LoggerFactory.getLogger(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME);
-		root.setLevel(Level.WARN);
+		root.setLevel(Level.INFO);
 
 		init();
 	}
@@ -84,7 +84,7 @@ public class FMSDataManager {
 				savePlace(navaid);
 
 				count++;
-				logger.info("Loading Navaid: {}", navaid.getKey() + "-" + navaid.getDescription());
+				logger.debug("Loading Navaid: {}", navaid.getKey() + "-" + navaid.getDescription());
 
 				line = fileReader.readLine();
 			}
@@ -160,7 +160,7 @@ public class FMSDataManager {
 						this.airports.put(airport.getIcaoId(), airport);
 						savePlace(airport);
 
-						logger.info("Loading Airport: {}", new Object[] { (airport != null ? airport.getIcaoId() + "[" + airport.listRunways() + "]" : "") });
+						logger.debug("Loading Airport: {}", new Object[] { (airport != null ? airport.getIcaoId() + "[" + airport.listRunways() + "]" : "") });
 					}
 				}
 
@@ -171,7 +171,7 @@ public class FMSDataManager {
 			this.airports.put(airport.getIcaoId(), airport);
 			savePlace(airport);
 
-			logger.info("Loading Airport: {}", new Object[] { (airport != null ? airport.getIcaoId() + "[" + airport.listRunways() + "]" : "") });
+			logger.debug("Loading Airport: {}", new Object[] { (airport != null ? airport.getIcaoId() + "[" + airport.listRunways() + "]" : "") });
 
 		} catch (FileNotFoundException e) {
 			logger.error(e.getMessage(), e);
@@ -216,7 +216,7 @@ public class FMSDataManager {
 				savePlace(fix);
 
 				count++;
-				logger.info("Loading Waypoint: {}", fix);
+				logger.debug("Loading Waypoint: {}", fix);
 
 				line = fileReader.readLine();
 			}
@@ -282,7 +282,7 @@ public class FMSDataManager {
 					}
 
 					this.airways.put(airway.getKey(), airway);
-					logger.info("Loading Airways: {}", new Object[] { (airway != null ? airway.toString() : "") });
+					logger.debug("Loading Airways: {}", new Object[] { (airway != null ? airway.toString() : "") });
 				}
 
 				count++;

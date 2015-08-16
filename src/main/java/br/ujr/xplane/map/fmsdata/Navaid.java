@@ -97,4 +97,11 @@ public class Navaid implements Place {
 		this.navaidType = navaidType;
 	}
 
+	@Override
+	public String toString() {
+		return this.code + "-" + this.description + " (" + this.latitude + "," + this.longitude + ")";
+	}
+	
+	
+
 }

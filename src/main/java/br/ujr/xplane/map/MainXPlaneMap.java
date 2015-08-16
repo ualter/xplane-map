@@ -99,56 +99,11 @@ public class MainXPlaneMap {
 				JSONObject flightPlanJSON = new JSONObject();
 				FlightPlan flightPlan = new FlightPlan();
 				FlightPlanLoadMessages messages = new FlightPlanLoadMessages();
-				Airport departure = fms.getAirports().get(flightPlanRequest.getDeparture());
-				if (departure != null) {
-					flightPlan.setDeparture(departure);
-					Airport destination = fms.getAirports().get(flightPlanRequest.getDestination());
-					if (destination != null) {
-						flightPlan.setDestination(destination);
 
-						if (flightPlanRequest.getWaypoints() != null && flightPlanRequest.getWaypoints().length > 0) {
-							for (String wpt : flightPlanRequest.getWaypoints()) {
-								Navaid navaid = null;
-								Fix fix = null;
-
-								// Look first for a Navaid
-								for (int i = 0; i < 3; i++) {
-									navaid = fms.getNavaids().get(wpt + "-" + (i));
-									if (navaid != null) {
-										flightPlan.addNavaid(navaid);
-										break;
-									}
-								}
-
-								// Then Look for a Fix if in Navaid registers
-								// was not found the wpt
-								if (navaid == null) {
-									for (int i = 0; i < 3; i++) {
-										fix = fms.getFixes().get(wpt + "-" + (i));
-										if (fix != null) {
-											flightPlan.addFix(fix);
-											break;
-										}
-									}
-								}
-
-								// Nothing found, neither Navaid, nor Fix
-								if (navaid == null && fix == null) {
-									messages.addMessage(wpt + " was not found.");
-								}
-							}
-						}
-					} else {
-						messages.addMessage(flightPlanRequest.getDestination() + " was not found.");
-					}
-				} else {
-					messages.addMessage(flightPlanRequest.getDeparture() + " was not found.");
-				}
+				this.loadFlightPlan(flightPlanRequest, flightPlan, messages);
 
 				if (flightPlan.isValid()) {
-					
-					System.out.println(flightPlan.toString());
-					
+					logger.info(flightPlan.toString());
 					flightPlan.calculateInfoRoute();
 					sendJSONObject(t, flightPlan);
 				} else {
@@ -157,6 +112,8 @@ public class MainXPlaneMap {
 				}
 			} else if (req.startsWith("/map.js")) {
 				sendFile(t, "map.js");
+			} else if (req.startsWith("/numeral.min.js")) {
+				sendFile(t, "numeral.min.js");
 			} else if (req.startsWith("/markerwithlabel.js")) {
 				sendFile(t, "markerwithlabel.js");
 			} else if (req.startsWith("/map.css")) {
@@ -167,8 +124,92 @@ public class MainXPlaneMap {
 				sendFile(t, "VOR.png");
 			} else if (req.startsWith("/NDB.png")) {
 				sendFile(t, "NDB.png");
+			} else if (req.startsWith("/arrow.png")) {
+				sendFile(t, "arrow.png");
+			} else if (req.startsWith("/takeoff.png")) {
+				sendFile(t, "takeoff.png");	
+			} else if (req.startsWith("/landing.png")) {
+				sendFile(t, "landing.png");	
 			} else {
 				sendFile(t, "index.html");
+			}
+		}
+
+		private void loadFlightPlan(FlightPlanRequest flightPlanRequest, FlightPlan flightPlan, FlightPlanLoadMessages messages) {
+			Airport departure = fms.getAirports().get(flightPlanRequest.getDeparture());
+			if (departure != null) {
+				flightPlan.setDeparture(departure);
+				Airport destination = fms.getAirports().get(flightPlanRequest.getDestination());
+				if (destination != null) {
+					flightPlan.setDestination(destination);
+
+					if (flightPlanRequest.getWaypoints() != null && flightPlanRequest.getWaypoints().length > 0) {
+						for (String wpt : flightPlanRequest.getWaypoints()) {
+							Navaid navaid = null;
+							Fix fix = null;
+							boolean lastCharIsNumber = !Character.isLetter(wpt.charAt(wpt.length() - 1));
+							String wptFull = null;
+							if ( lastCharIsNumber ) {
+								wptFull = wpt.substring(0,wpt.length()-1) + "-" + wpt.substring(wpt.length()-1);
+							}
+
+							// Look first for a Navaid
+							if (lastCharIsNumber) {
+								logger.info("Try loading specifically Navaid {}", wptFull);
+								navaid = fms.getNavaids().get(wptFull);
+								if (navaid != null) {
+									flightPlan.addNavaid(navaid);
+									logger.info("Loaded Navaid {} {}", wptFull, navaid.toString());
+								}
+							} else {
+								for (int i = 0; i < 3; i++) {
+									logger.info("Try loading Navaid {}", wpt + "-" + (i));
+									navaid = fms.getNavaids().get(wpt + "-" + (i));
+									if (navaid != null) {
+										flightPlan.addNavaid(navaid);
+										logger.info("Loaded Navaid {} {}", wpt + "-" + (i), navaid.toString());
+										break;
+									}
+								}
+							}
+
+							// Then Look for a Fix if in Navaid registers
+							// was not found the wpt
+							if (navaid == null) {
+								if (lastCharIsNumber) {
+									logger.info("Try loading specifically Fix {}", wptFull);
+									fix = fms.getFixes().get(wptFull);
+									if (fix != null) {
+										flightPlan.addFix(fix);
+										logger.info("Loaded Fix {} {}", wptFull, fix.toString());
+									}
+								} else {
+									for (int i = 0; i < 3; i++) {
+										logger.info("Try loading Fix {}", wpt + "-" + (i));
+										fix = fms.getFixes().get(wpt + "-" + (i));
+										if (fix != null) {
+											flightPlan.addFix(fix);
+											logger.info("Loaded Fix {} {}", wpt + "-" + (i), fix.toString());
+											break;
+										}
+									}
+								}
+							}
+
+							// Nothing found, neither Navaid, nor Fix
+							if (navaid == null && fix == null) {
+								logger.info("Waypoint {} not found.", wpt);
+								messages.addMessage(wpt + " was not found.");
+							}
+						}
+					}
+				} else {
+					logger.info("Destination airport {} not found.", flightPlanRequest.getDestination());
+					messages.addMessage(flightPlanRequest.getDestination() + " was not found.");
+				}
+			} else {
+				logger.info("Departure airport {} not found.", flightPlanRequest.getDeparture());
+				messages.addMessage(flightPlanRequest.getDeparture() + " was not found.");
 			}
 		}
 

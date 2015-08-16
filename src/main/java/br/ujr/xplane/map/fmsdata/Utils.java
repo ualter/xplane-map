@@ -36,12 +36,19 @@ public class Utils {
 		System.out.println(Utils.parseCoord(lat));
 		System.out.println(Utils.parseCoord(lng));*/
 		
-		int a = -276;
+		/*int a = -276;
 		
 		if ( a < -275) {
 			System.out.println("menor");
-		}
-
+		}*/
+		
+		String s = "LODOG1";
+		boolean lastIsNumber = !Character.isLetter( s.charAt(s.length()-1) );
+		
+		String wptFull = s.substring(0,s.length()-1) + "-" + s.substring(s.length()-1);
+		
+		System.out.println(lastIsNumber + "," + wptFull);
+		
 	}
 
 }

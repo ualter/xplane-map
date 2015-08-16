@@ -85,6 +85,7 @@ public class FlightPlan {
 			infoRoute.setNextLatitude((float) latitude2);
 			infoRoute.setNextLongitude((float) longitude2);
 			infoRoute.setBearing(formatBearing(bearing));
+			infoRoute.setCompassHeading(calculateCompassHeading((int) bearing));
 			listaInfoRoutes.add(infoRoute);
 			currentPoint = nextPoint;
 			latitude1 = latitude2;
@@ -108,6 +109,7 @@ public class FlightPlan {
 		infoRoute.setNextLongitude((float) longitude2);
 		infoRoute.setDistanceNM((int) distance);
 		infoRoute.setBearingDegree((int) bearing);
+		infoRoute.setCompassHeading(calculateCompassHeading((int) bearing));
 		listaInfoRoutes.add(infoRoute);
 
 		this.infoRoute = new InfoRoute[listaInfoRoutes.size()];
@@ -223,18 +225,48 @@ public class FlightPlan {
 
 		int result = (int) ((Math.toDegrees(Math.atan2(y, x)) + 360) % 360);
 		// TODO: Check why it always we have the difference around of 22 comparing with the SkyVector
-		return result + 22;
+		result += 22;
+		return result;
+	}
+	
+	private String calculateCompassHeading(int bearing) {
+		String result = "N";
+		if (bearing >= 331 && bearing <= 30) {
+			result = "N";
+		} else
+		if (bearing >= 31 && bearing <= 60) {
+			result = "NE";
+		} else
+		if (bearing >= 61 && bearing <= 120) {
+			result = "E";
+		} else
+		if (bearing >= 121 && bearing <= 150) {
+			result = "SE";
+		} else
+		if (bearing >= 151 && bearing <= 210) {
+			result = "S";
+		} else
+		if (bearing >= 211 && bearing <= 240) {
+			result = "SW";
+		} else
+		if (bearing >= 241 && bearing <= 300) {
+			result = "W";
+		}  else
+		if (bearing >= 301 && bearing <= 330) {
+			result = "NW";
+		}  
+		return result;
 	}
 
 	@Override
 	public String toString() {
 		StringBuffer sb = new StringBuffer();
 		sb.append("[ From: ");
-		sb.append(this.departure.getIcaoId() + "|" + this.departure.getName() + "| (" + this.departure.getLatitude() + "," + this.departure.getLongitude() + ")");
+		sb.append(this.departure.getIcaoId() + "-" + this.departure.getName() + " (" + this.departure.getLatitude() + "," + this.departure.getLongitude() + ")");
 		sb.append("] ");
 		// waypoints?!
 		sb.append("[ To:");
-		sb.append(this.destination.getIcaoId() + "|" + this.destination.getName() + "| (" + this.destination.getLatitude() + "," + this.destination.getLongitude() + ")");
+		sb.append(this.destination.getIcaoId() + "-" + this.destination.getName() + " (" + this.destination.getLatitude() + "," + this.destination.getLongitude() + ")");
 		sb.append("]");
 		return sb.toString();
 	}

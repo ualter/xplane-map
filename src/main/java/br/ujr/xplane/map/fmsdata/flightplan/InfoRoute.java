@@ -12,6 +12,7 @@ public class InfoRoute {
 	private float	longitude;
 	private float	nextLatitude;
 	private float	nextLongitude;
+	private String  compassHeading;
 
 	public InfoRoute() {
 		super();
@@ -90,6 +91,13 @@ public class InfoRoute {
 	}
 	
 	
+	public String getCompassHeading() {
+		return compassHeading;
+	}
+
+	public void setCompassHeading(String compassHeading) {
+		this.compassHeading = compassHeading;
+	}
 
 	public int getBearingDegree() {
 		return bearingDegree;
