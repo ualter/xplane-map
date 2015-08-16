@@ -320,10 +320,38 @@ function markLabelRoute(labelRoute) {
 		labelContent : label,
 		labelAnchor : anchor,
 		labelClass : "labelsInfoRoute",
-		clickable : false,
+		clickable : true,
 		icon : iconLabelRoute,
 		rotate : angleRotate
 	});
+	
+	var infoContent = "<b>Info</b>";
+	infoContent += "<table width='100%' class='runwayTable' cellspacing='0' cellpadding='0'>";
+	infoContent += "</table>";
+	var infoBox = new google.maps.InfoWindow({
+		content: '<div id="iw_content">' + infoContent + '</div>'
+		
+	});
+	google.maps.event.addListener(markerLabelRoute, "mouseover", function(e) {
+		infoBox.open(map, this);
+	});
+	google.maps.event.addListener(markerLabelRoute, "mouseout", function(e) {
+		infoBox.close();
+	});
+	google.maps.event.addListener(infoBox, 'domready', function () {
+		el = document.getElementById('iw_content').parentNode.parentNode.parentNode.parentNode;
+	    divEl = el.firstChild;
+	    child1 = divEl.firstChild;
+	    child3 = child1.nextElementSibling.nextElementSibling;
+	    if ( child3 != undefined ) {
+	    	child1.style.visibility = "hidden";
+	    	child3.style.visibility = "hidden";
+		    // Remove Close Button
+		    divCloseButton = divEl.parentNode.firstChild.nextElementSibling.nextElementSibling;
+		    divCloseButton.style.visibility = "hidden";
+	    }
+	});
+	
 	markerLabelRoute.setMap(map);
 	saveMark(markerLabelRoute);
 }
@@ -354,13 +382,19 @@ function markAirport(airport) {
 	infoContent += "</table>";
 
 	var infoM1 = new google.maps.InfoWindow({
-		content : infoContent
+		content: '<div id="iw_content">' + infoContent + '</div>'
 	});
 	google.maps.event.addListener(markerAirport, "mouseover", function(e) {
 		infoM1.open(map, this);
 	});
 	google.maps.event.addListener(markerAirport, "mouseout", function(e) {
+		el = document.getElementById('iw_content').parentNode.parentNode.parentNode.parentNode;
+		visibilityArrowInfoBox(el,"hidden");
 		infoM1.close();
+	});
+	google.maps.event.addListener(infoM1, 'domready', function () {
+		el = document.getElementById('iw_content').parentNode.parentNode.parentNode.parentNode;
+		visibilityArrowInfoBox(el,"visible");
 	});
 	markerAirport.setMap(map);
 	saveMark(markerAirport);
@@ -428,7 +462,7 @@ function markWaypoint(waypoint) {
 		infoContent += "</table>";
 	}
 	var infoM1 = new google.maps.InfoWindow({
-		content : infoContent
+		content: '<div id="iw_content">' + infoContent + '</div>'
 	});
 	/*
 	 * google.maps.event.addListener(mw1, "click", function(e) {
@@ -438,10 +472,30 @@ function markWaypoint(waypoint) {
 		infoM1.open(map, this);
 	});
 	google.maps.event.addListener(markerWaypoint, "mouseout", function(e) {
+		el = document.getElementById('iw_content').parentNode.parentNode.parentNode.parentNode;
+		visibilityArrowInfoBox(el,"hidden");
 		infoM1.close();
+	});
+	google.maps.event.addListener(infoM1, 'domready', function () {
+		el = document.getElementById('iw_content').parentNode.parentNode.parentNode.parentNode;
+		visibilityArrowInfoBox(el,"visible");
 	});
 	markerWaypoint.setMap(map);
 	saveMark(markerWaypoint);
+}
+
+function visibilityArrowInfoBox(el,status) {
+	divEl = el.firstChild;
+    child1 = divEl.firstChild;
+    child3 = child1.nextElementSibling.nextElementSibling;
+    if ( child3 != undefined ) {
+    	child1.style.visibility = status;
+    	child3.style.visibility = status;
+	    // Remove Close Button
+	    divCloseButton = divEl.parentNode.firstChild.nextElementSibling.nextElementSibling;
+	    //divCloseButton.style.visibility = status;
+	    divCloseButton.style.visibility = "hidden";
+    }
 }
 
 function precisionDecimalNumber(vlr) {
