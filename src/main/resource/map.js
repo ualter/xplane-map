@@ -113,7 +113,7 @@ function initialize() {
 	});
 
 	$('body').keyup(function(e) {
-		if (e.keyCode == 9) {
+		if (e.keyCode == 192) {
 			toggleFlightPanel();
 		}
 	});
