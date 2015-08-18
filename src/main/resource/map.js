@@ -716,12 +716,14 @@ function toggleFlightPanel() {
 function hideFlightPanel() {
 	$('#panel-fp').hide(500);
 	$('#flightplan-help').hide(300);
+	$('#flightplan-info').hide(300);
 	$('#flightplan-button').removeClass("down").addClass("up");
 }
 
 function showFlightPanel() {
 	$('#panel-fp').show(500);
 	$('#flightplan-help').show(300);
+	$('#flightplan-info').show(300);
 	$('#flightplan-button').removeClass("up").addClass("down");
 	$('#boxFlightPlan').focus();
 }
