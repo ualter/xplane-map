@@ -664,7 +664,9 @@ function updatePosition() {
 				}
 				// move map if checkbox checked
 				if ( chaseAirplane ) {
-					map.panTo(new google.maps.LatLng(planeList[planeToFollow].lat,planeList[planeToFollow].lon));
+					if ( planeList[planeToFollow] != undefined ) {
+						map.panTo(new google.maps.LatLng(planeList[planeToFollow].lat,planeList[planeToFollow].lon));
+					}
 				}
 			})
 	.error(
