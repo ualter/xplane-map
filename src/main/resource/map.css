@@ -219,3 +219,12 @@ html, body, #map-canvas {
     font-size: 13px;
     color: white;
 }
+#flightplan-loading {
+	position: absolute; 
+	top: 42px; 
+	left: 30px; 
+	z-index: 9999;
+	color: black;
+	font-family: monospace;
+	font-size:11px;
+}
