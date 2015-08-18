@@ -23,17 +23,10 @@ var map;
 var polyOptions = {
 	geodesic : true,
 	strokeColor : '#000000',
-	strokeOpacity : 1.0,
-	strokeWeight : 2
+	strokeOpacity : 0.8,
+	strokeWeight : 3
 };
 var markerOptions = {
-	/*
-	 * icon: { path:
-	 * "M250.2,59.002c11.001,0,20.176,9.165,20.176,20.777v122.24l171.12,95.954v42.779l-171.12-49.501v89.227l40.337," +
-	 * "29.946v35.446l-60.52-20.18-60.502,20.166v-35.45l40.341-29.946v-89.227l-171.14,49.51v-42.779l171.14-95.954v-" +
-	 * "122.24c0-11.612,9.15-20.777,20.16-20.777z", scale: 0.1, fillOpacity: 1,
-	 * anchor: new google.maps.Point(250,250), strokeWeight: 0.5 }
-	 */
 	icon : {
 		path : "M362.985,430.724l-10.248,51.234l62.332,57.969l-3.293,26.145 l-71.345-23.599l-2.001,13.069l-2.057-13.529l-71.278,"
 				+ "22.928l-5.762-23.984l64.097-59.271l-8.913-51.359l0.858-114.43 l-21.945-11.338l-189.358,"
@@ -42,7 +35,7 @@ var markerOptions = {
 				+ "3.65 l6.367,14.925l7.369,30.363v106.375l211.592,182.082l-1.496,32.247l-188.479-90.61l-21.616,10.087l-0.094,115.684",
 		scale : 0.08,
 		fillOpacity : 1,
-		anchor : new google.maps.Point(250, 250),
+		anchor : new google.maps.Point(340, 340),
 		strokeWeight : 0.5
 	}
 };
@@ -97,13 +90,15 @@ var iconNDB = {
 var planeList = {};
 var refreshControlPanel = false;
 var planeToFollow = null;
-var colors = [ "#26764E", "#F08526", "#9CFF54", "#721B49", "#A7D8F8","#2AFDBC", "#FBE870", "#711302", "#2572C2", "#1C271D", "#632E85",
+var colors = [ "blue","#26764E", "#F08526", "#9CFF54", "#721B49", "#A7D8F8","#2AFDBC", "#FBE870", "#711302", "#2572C2", "#1C271D", "#632E85",
 		"#1E5F7A", "#D8B2F5", "#D307A2", "#F391B5", "#F180F5", "#3A1E2E","#AE7707", "#3E3D0E", "#6AB06E" ];
 var color_index = 0;
 var navMap;
 var flightPlan = {};
 var flightPath; // an object google.maps.Polyline - representing the Flight Plan
 var markers = [];
+var elInfoBoxPlane;
+var chaseAirplane = true;
 
 $.ajaxSetup({
 	cache : false
@@ -357,11 +352,15 @@ function markLabelRoute(labelRoute) {
 		pixelOffset: new google.maps.Size(-30,-25,"px","px")
 	});
 	google.maps.event.addListener(markerLabelRoute, "mouseover", function(e) {
-		infoBox.open(map, this);
+		if ( elInfoBoxPlane == undefined ) {
+			infoBox.open(map, this);
+		}
 	});
 	google.maps.event.addListener(markerLabelRoute, "mouseout", function(e) {
-		changeColorInfoBox(el,"rgb(255,255,255)");
-		infoBox.close();
+		if ( elInfoBoxPlane == undefined ) {
+			changeColorInfoBox(el,"rgb(255,255,255)");
+			infoBox.close();
+		}
 	});
 	google.maps.event.addListener(infoBox, 'domready', function () {
 	    el = document.getElementById('iw_content').parentNode.parentNode.parentNode.parentNode;
@@ -418,13 +417,17 @@ function markAirport(airport,type) {
 		infoM1.open(map, this);
 	});
 	google.maps.event.addListener(markerAirport, "mouseout", function(e) {
-		el = document.getElementById('iw_content').parentNode.parentNode.parentNode.parentNode;
-		visibilityArrowInfoBox(el,"hidden");
+		if ( elInfoBoxPlane == undefined ) {
+			el = document.getElementById('iw_content').parentNode.parentNode.parentNode.parentNode;
+			visibilityArrowInfoBox(el,"hidden");
+		}
 		infoM1.close();
 	});
 	google.maps.event.addListener(infoM1, 'domready', function () {
-		el = document.getElementById('iw_content').parentNode.parentNode.parentNode.parentNode;
-		visibilityArrowInfoBox(el,"visible");
+		if ( elInfoBoxPlane == undefined ) {
+			el = document.getElementById('iw_content').parentNode.parentNode.parentNode.parentNode;
+			visibilityArrowInfoBox(el,"visible");
+		}
 	});
 	markerAirport.setMap(map);
 	saveMark(markerAirport);
@@ -464,51 +467,37 @@ function markWaypoint(waypoint) {
 		infoContent += "<td>&nbsp;&nbsp;&nbsp;<b>" + waypoint.id + "</b> - "
 				+ waypoint.descr + "</td>" + "</tr></table>"
 		infoContent += "<tr><td colspan='2'><hr/></td></tr>";
-		infoContent += "<tr>"
-				+ " <td width='20%'> Frequency:&nbsp;</td><td><span class='vorInfo'>"
-				+ waypoint.freq + "</td>" + "</tr>";
-		infoContent += "<tr>"
-				+ " <td width='1%'> Latitude:&nbsp;</td><td><span class='vorInfo'>"
-				+ precisionDecimalNumber(waypoint.latlng.lat()) + "</td>"
-				+ "</tr>";
-		infoContent += "<tr>"
-				+ " <td> Longitude:&nbsp;</td><td><span class='vorInfo'>"
-				+ precisionDecimalNumber(waypoint.latlng.lng()) + "<br/></td>"
-				+ "</tr>";
+		infoContent += "<tr><td width='20%'> Frequency:&nbsp;</td><td><span class='vorInfo'>" + waypoint.freq + "</td>" + "</tr>";
+		infoContent += "<tr><td width='1%'> Latitude:&nbsp;</td><td><span class='vorInfo'>" + precisionDecimalNumber(waypoint.latlng.lat()) + "</td></tr>";
+		infoContent += "<tr><td> Longitude:&nbsp;</td><td><span class='vorInfo'>" + precisionDecimalNumber(waypoint.latlng.lng()) + "<br/></td></tr>";
 		infoContent += "</table>";
 	} else {
 		// FIX
 		infoContent = "<table border=0 class='vorTable' cellspacing='0' cellpadding='0' width='120px'>";
 		infoContent += "<td colspan=2><b>" + waypoint.id + "</b></td></tr>"
 		infoContent += "<tr><td colspan='2'><hr/></td></tr>";
-		infoContent += "<tr>"
-				+ " <td width='1%'> Latitude:&nbsp;</td><td><span class='vorInfo'>"
-				+ precisionDecimalNumber(waypoint.latlng.lat()) + "</td>"
-				+ "</tr>";
-		infoContent += "<tr>"
-				+ " <td> Longitude:&nbsp;</td><td><span class='vorInfo'>"
-				+ precisionDecimalNumber(waypoint.latlng.lng()) + "<br/></td>"
-				+ "</tr>";
+		infoContent += "<tr><td width='1%'> Latitude:&nbsp;</td><td><span class='vorInfo'>" + precisionDecimalNumber(waypoint.latlng.lat()) + "</td></tr>";
+		infoContent += "<tr><td> Longitude:&nbsp;</td><td><span class='vorInfo'>" + precisionDecimalNumber(waypoint.latlng.lng()) + "<br/></td></tr>";
 		infoContent += "</table>";
 	}
 	var infoM1 = new google.maps.InfoWindow({
 		content: '<div id="iw_content">' + infoContent + '</div>'
 	});
-	/*
-	 * google.maps.event.addListener(mw1, "click", function(e) {
-	 * infoM1.open(map, this); });
-	 */
 	google.maps.event.addListener(markerWaypoint, "mouseover", function(e) {
 		infoM1.open(map, this);
 	});
 	google.maps.event.addListener(markerWaypoint, "mouseout", function(e) {
-		el = document.getElementById('iw_content').parentNode.parentNode.parentNode.parentNode;
-		visibilityArrowInfoBox(el,"hidden");
+		if ( elInfoBoxPlane == undefined ) {
+			el = document.getElementById('iw_content').parentNode.parentNode.parentNode.parentNode;
+			visibilityArrowInfoBox(el,"hidden");
+		}
 		infoM1.close();
 	});
 	google.maps.event.addListener(infoM1, 'domready', function () {
-		el = document.getElementById('iw_content').parentNode.parentNode.parentNode.parentNode;
-		visibilityArrowInfoBox(el,"visible");
+		if ( elInfoBoxPlane == undefined ) {
+			el = document.getElementById('iw_content').parentNode.parentNode.parentNode.parentNode;
+			visibilityArrowInfoBox(el,"visible");
+		}
 	});
 	markerWaypoint.setMap(map);
 	saveMark(markerWaypoint);
@@ -519,17 +508,22 @@ function changeColorInfoBox(el,color) {
 	divColor.style.background = color;
 }
 
-function visibilityArrowInfoBox(el,status) {
+function visibilityArrowInfoBox(el,statusArrow,statusCloseButton) {
 	divEl = el.firstChild;
     child1 = divEl.firstChild;
     child3 = child1.nextElementSibling.nextElementSibling;
     if ( child3 != undefined ) {
-    	child1.style.visibility = status;
-    	child3.style.visibility = status;
+    	child1.style.visibility = statusArrow;
+    	child3.style.visibility = statusArrow;
 	    // Remove Close Button
 	    divCloseButton = divEl.parentNode.firstChild.nextElementSibling.nextElementSibling;
 	    //divCloseButton.style.visibility = status;
-	    divCloseButton.style.visibility = "hidden";
+	    if ( statusCloseButton != undefined ) {
+	    	divCloseButton.style.visibility = statusCloseButton;
+	    } else {
+	    	divCloseButton.style.visibility = "hidden";
+	    }
+	    
     }
 }
 
@@ -545,7 +539,6 @@ function updatePosition() {
 					showError("Listening at X-Plane's UDP traffic port 49003. "
 							+ "Please check the settings at the X-Plane's Net Connections menu.");
 				}
-
 				// delete all absent planes
 				for ( var ip in planeList) {
 					if (!(ip in data)) {
@@ -553,40 +546,37 @@ function updatePosition() {
 						refreshControlPanel = true;
 					}
 				}
-
 				// for current and new planes
 				for ( var ip in data) {
-
 					// if new plane
 					if (!(ip in planeList)) {
 						color = nextColor();
-
 						markerOptions.icon.fillColor = color;
 						planeList[ip] = {
 							name : ip.replace(/-/g, '.'),
 							lon : 0,
 							lat : 0,
 							alt : data[ip].alt,
-							marker : new google.maps.Marker(
-									markerOptions),
-							trace : new google.maps.Polyline(
-									polyOptions),
+							marker : new google.maps.Marker(markerOptions),
+							trace : new google.maps.Polyline(polyOptions),
 							info : new google.maps.InfoWindow(),
 							color : color
-
 						};
 						planeList[ip].marker.setMap(map);
 						planeList[ip].marker.ip = ip; 
 						planeList[ip].infoWindowListener = google.maps.event
-								.addListener(
-										planeList[ip].marker,
-										'click',
-										function() {
-											planeList[this.ip].info
-													.open(
-															map,
-															planeList[this.ip].marker);
-										});
+								.addListener(planeList[ip].marker,'click', function() {
+									planeList[this.ip].info.open(map,planeList[this.ip].marker);
+								});
+						google.maps.event.addListener(planeList[ip].info, 'domready', function () {
+							elInfoBoxPlane = document.getElementById('iw_content').parentNode.parentNode.parentNode.parentNode;
+							visibilityArrowInfoBox(elInfoBoxPlane,"visible","visible");
+						});
+						google.maps.event.addListener(planeList[ip].info,'closeclick',function(){
+							visibilityArrowInfoBox(elInfoBoxPlane,"hidden");
+							elInfoBoxPlane = undefined;
+						});
+						
 						planeList[ip].trace.setMap(map);
 						planeToFollow = ip;
 						refreshControlPanel = true;
@@ -604,35 +594,52 @@ function updatePosition() {
 					spd = distance(planeList[ip].lon,planeList[ip].lat, newLon, newLat)	/ (period / 1000) * 3600 / 1.852;
 					// add new point to line
 					planeList[ip].trace.getPath().push(newPoint);
+					
+					var airplaneLabel =  planeList[ip].name;
+					if ( airplaneLabel == '127.0.0.1' ) {
+						 airplaneLabel = 'YOU';
+					}
+					var hdgAirplane = Number(Math.floor(((hdg + 360) % 360))) + 20;
+					var infoContent = "<div id='iw_content'>";
+					infoContent += "<div style='margin: 0; width: 150px;'>";
+					infoContent += "<table border=0 cellspacing='0' cellpadding='0' width='100%'>";
+					
+					infoContent += " <tr><td>";
+					infoContent += "  <table border=0 cellspacing='0' cellpadding='0' width='100%'>";
+					infoContent += "   <tr><td>";
+					infoContent += "   <b>" + airplaneLabel + "</b>";
+					infoContent += "   </td></tr>";
+					infoContent += "   <tr><td>";
+					infoContent += "    <b><hr></b>";
+					infoContent += "   </td></tr>";
+					infoContent += "  </table>";
+					infoContent += " </td></tr>";
+					
+					infoContent += " <tr><td><span class='planeDataInfo'>";
+					infoContent += numeral(planeList[ip].alt.toFixed()).format('0,0') + "</span>&nbsp;ft MSL / " 
+					            + "<span class='planeDataInfo'>" + hdgAirplane + "&deg;</span>";
+					infoContent += " </td></tr>";
+					
+					infoContent += " <tr><td>";
+					infoContent += " GS <span class='planeDataInfo'>" + spd.toFixed() + "</span>&nbsp;kts";
+					infoContent += " </td></tr>";
+					
+					infoContent += "";
+					infoContent += "</table>";
+					infoContent += "</div>";
+					infoContent += "</div>";
+					
 					// set info window content
-					planeList[ip].info
-							.setContent('<div style="margin: 0; width: 150px;"><strong>'
-									+ planeList[ip].name
-									+ '</strong><br>'
-									+ planeList[ip].alt.toFixed()
-									+ ' ft MSL / '
-									+ (hdg + 360).toFixed()
-									% 360
-									+ '&deg;<br>'
-									+ 'GS '
-									+ spd.toFixed() + ' kts</div>');
-					// set table content
-					$('.planeRow[data-ip="' + ip + '"] .altText').html(planeList[ip].alt.toFixed() + ' ft');
-					$('.planeRow[data-ip="' + ip + '"] .hdgText').html((hdg + 360).toFixed() % 360 + '&deg;');
-					$('.planeRow[data-ip="' + ip + '"] .spdText').html('GS ' + spd.toFixed() + ' kts');
-					// save plane data
+					planeList[ip].info.setContent(infoContent);
 					planeList[ip].lon = newLon;
 					planeList[ip].lat = newLat;
 					planeList[ip].hdg = hdg;
 					planeList[ip].spd = spd;
 				}
 				// move map if checkbox checked
-				if (planeToFollow != null) {
+				if ( chaseAirplane ) {
 					map.panTo(new google.maps.LatLng(planeList[planeToFollow].lat,planeList[planeToFollow].lon));
 				}
-				/*if (refreshControlPanel) {
-					refreshCP();
-				}*/
 			})
 	.error(
 			function() {
@@ -646,12 +653,10 @@ function bearing(lon1, lat1, lon2, lat2) {
 	lon2 = lon2 * Math.PI / 180;
 	lat1 = lat1 * Math.PI / 180;
 	lat2 = lat2 * Math.PI / 180;
-
 	var y = Math.sin(lon2 - lon1) * Math.cos(lat2);
 	var x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2)
 			* Math.cos(lon2 - lon1);
 	var brng = Math.atan2(y, x);
-
 	return brng / Math.PI * 180;
 }
 
@@ -661,13 +666,10 @@ function distance(lon1, lat1, lon2, lat2) {
 	lat2 = lat2 * Math.PI / 180;
 	var deltalat = lat2 - lat1;
 	var deltalon = (lon2 - lon1) * Math.PI / 180;
-
 	var a = Math.sin(deltalat / 2) * Math.sin(deltalat / 2) + Math.cos(lat1)
 			* Math.cos(lat2) * Math.sin(deltalon / 2) * Math.sin(deltalon / 2);
 	var c = 2 * Math.asin(Math.sqrt(a));
-
-	// console.log(R*c);
-	return R * c; // returns kilometers
+	return R * c;
 }
 
 // clean plane deletion
@@ -677,110 +679,6 @@ function deletePlane(ip) {
 	planeList[ip].marker.setMap(null);
 	delete planeList[ip];
 }
-
-// refresh control panel
-/*function refreshCP() {
-	$('.planeRow').remove();
-	for ( var ip in planeList) {
-		$("#planesTable")
-				.append(
-						'<tr class="planeRow'
-								+ ((planeToFollow == ip) ? ' followed' : '')
-								+ '" data-ip="'
-								+ ip
-								+ '">'
-								+ '<td style="background-color: '
-								+ planeList[ip].color
-								+ ';"title="Click to focus on this plane."><label><input type="radio" name="plane"></label></td>'
-								+ '<td title="Double-click to rename.">'
-								+ '<strong class="plane-name">'
-								+ planeList[ip].name
-								+ '</strong><br>'
-								+ '<span class="altText">'
-								+ planeList[ip].alt.toFixed()
-								+ ' ft</span> | <span class="hdgText">'
-								+ (planeList[ip].hdg + 360).toFixed() % 360
-								+ '&deg;</span> | <span class="spdText">GS '
-								+ planeList[ip].spd.toFixed()
-								+ ' kts</span>'
-								+ '</td>'
-								+ '<td title="Click to show or hide trace."><input type="checkbox" class="trace-show" checked></td>'
-								+ '<td title="Click to reset the plane\'s trace."><button class="trace-clear">Clr</button></td>'
-								+ '<td title="Click to remove the plane."><button class="plane-remove" >Rm</button></td>'
-								+ '</tr>');
-	}
-
-	// resetting js events
-	// radio button
-	$('input[name=plane]').change(
-			function() {
-				$('.planeRow').removeClass("followed");
-				$('input[name=plane]:checked').parents('tr').addClass(
-						"followed");
-				ip = $('input[name=plane]:checked').parents('tr').data("ip");
-				planeToFollow = ip;
-				if (ip != null)
-					map.panTo(new google.maps.LatLng(planeList[ip].lat,
-							planeList[ip].lon));
-			});
-
-	// hide/show trace checkbox
-	$('.trace-show').change(function() {
-		ip = $(this).parents('.planeRow').data("ip");
-		planeList[ip].trace.setVisible($(this).is(':checked'));
-	});
-
-	// trace clear button
-	$('.trace-clear').click(
-			function() {
-				ip = $(this).parents('.planeRow').data("ip");
-				planeList[ip].trace.setMap(null);
-				planeList[ip].trace = new google.maps.Polyline(polyOptions);
-				planeList[ip].trace.setMap(map);
-				planeList[ip].trace.getPath().push(
-						new google.maps.LatLng(planeList[ip].lat,
-								planeList[ip].lon));
-			});
-
-	// plane remove button
-
-	$('.plane-remove').click(function() {
-		if (confirm('Are you sure you want to remove this plane ?')) {
-			ip = $(this).parents('.planeRow').data("ip");
-			deletePlane(ip);
-			refreshCP();
-		}
-	});
-
-	// plane name edition
-	$('.plane-name').dblclick(function() {
-		ip = $(this).parents('.planeRow').data("ip");
-		theName = planeList[ip].name;
-		$(this).replaceWith($('<input/>', {
-			value : theName,
-			id : 'planeNameInput',
-			'data-ip' : ip
-		}).val(theName));
-
-		$('#planeNameInput').select().keyup(function(e) {
-			if (e.keyCode == 13) {
-				theNewName = $(this).val();
-				theIP = $(this).data('ip');
-				planeList[theIP].name = theNewName;
-				refreshCP();
-			} else if (e.keyCode == 27) {
-				refreshCP();
-			}
-		});
-	});
-
-	$('#planesTable tr td:nth-child(2)').click(function() {
-		$(this).parents('tr').find('input[name=plane]').click();
-	});
-
-	refreshControlPanel = false;
-
-}*/
 
 // alert() equivalent
 function showError(text) {
@@ -797,6 +695,15 @@ function nextColor() {
 		console.log("No more colors");
 		return "#aaaaaa";
 	}
+}
+
+function toggleChaseAirplane() {
+	if ( chaseAirplane ) {
+		$('#followThePlane-button').removeClass("down").addClass("up");
+	} else {
+		$('#followThePlane-button').removeClass("up").addClass("down");
+	}
+	chaseAirplane = !chaseAirplane;
 }
 
 function toggleFlightPanel() {

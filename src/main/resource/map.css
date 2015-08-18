@@ -8,7 +8,7 @@ html, body, #map-canvas {
 #panel-fp {
 	position: absolute;
 	top: 60px;
-	left: 5%;
+	left: 90px;
 	z-index: 5;
 	padding: 5px;
 	border-radius: 5px;
@@ -57,7 +57,7 @@ html, body, #map-canvas {
 	z-index: 1000;
 	position: absolute;
 	top: 190px;
-	left: 5%;
+	left: 90px;
 	font-family: Verdana, Arial, sans-serif;
 	text-decoration: none;
 	box-shadow: 4px 4px 4px 0px rgba(50, 50, 50, 0.75);
@@ -74,27 +74,58 @@ html, body, #map-canvas {
 #flightplan-button {
 	position: absolute;
 	top: 28px;
-	left: 5%;
+	left: 90px;
 	font-family: Verdana, Arial, sans-serif;
 	text-decoration: none;
 	border: 1px solid #999;
 	font-size: 12px;
 	font-weight: 500;
-	background-color: #fff;
+	background-color: rgba(255,255,255,0.70);
+	border-radius: 2px;
+	padding: 5px;
+	cursor: pointer;
+	border-radius: 5px;
+}
+#plane-panel {
+	position: absolute;
+	top: 28px;
+	left: 205px;
+	font-family: Verdana, Arial, sans-serif;
+	text-decoration: none;
+	font-size: 12px;
+	font-weight: 500;
+	border-radius: 2px;
+	cursor: pointer;
+	border-radius: 5px;
+}
+#followThePlane-button {
+	font-family: Verdana, Arial, sans-serif;
+	text-decoration: none;
+	border: 1px solid #999;
+	font-size: 12px;
+	font-weight: 500;
+	background-color: rgba(255,255,255,0.70);
 	border-radius: 2px;
 	padding: 5px;
 	cursor: pointer;
 	border-radius: 5px;
 }
 #flightplan-button.down {
-	background-color: #000;
+	background-color: rgba(0,0,0,0.70);
 	color: #fff;
 }
 #flightplan-button.up {
-	background-color: #fff;
+	background-color: rgba(255,255,255,0.70);
 	color: #000;
 }
-
+#followThePlane-button.up {
+	background-color: rgba(255,255,255,0.70);
+	color: #000;
+}
+#followThePlane-button.down {
+	background-color: rgba(0,0,0,0.70);
+	color: #fff;
+}
 .labelsAirport {
 	color: darkblue;
 	background-color: white;
@@ -149,6 +180,10 @@ html, body, #map-canvas {
 	font-weight: bold;
 }
 .routeInfo {
+	color: blue;
+	font-weight: bold;
+}
+.planeDataInfo {
 	color: blue;
 	font-weight: bold;
 }

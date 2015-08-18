@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 public class UDPListener implements Runnable {
 
 	public static Logger	logger			= LoggerFactory.getLogger(UDPListener.class);
-	private boolean			receiveFake		= true;
+	private boolean			receiveFake		= false;
 	private PlanesList		list;
 
 	DatagramSocket			serverSocket	= null;
@@ -66,6 +66,6 @@ public class UDPListener implements Runnable {
 		this.list.setPlaneLon(IPAddress, lon.floatValue());
 		this.list.setPlaneAlt(IPAddress, alt.floatValue());
 
-		logger.info("Received from X-Plane: Latitude {}, Longitude {}, Altitude {}", new Object[] { lat, lon, alt });
+		logger.debug("Received from X-Plane: Latitude {}, Longitude {}, Altitude {}", new Object[] { lat, lon, alt });
 	}
 }
