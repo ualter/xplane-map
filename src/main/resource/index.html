@@ -17,7 +17,29 @@
 	<div id="plane-panel">
 		<div id="followThePlane-button" class="down">Chase Airplane</div>
 	</div>
-	<div id="flightplan-help">Fill the route with all the waypoints separated by spaces. This waypoints might be VOR, FIX or Airports.</div>
+	<div id="flightplan-info">
+	   <table>
+	       <tr>
+	           <td class="flightPlan-info-label"><b>Departure:</b></td>
+	           <td>
+	               <span id="fpInfo-Departure"></span>
+	           </td>
+	       </tr>
+	       <tr>
+               <td class="flightPlan-info-label">Destination:</td>
+               <td>
+                   <span id="fpInfo-Destination"></span>
+               </td>
+           </tr>
+           <tr>
+               <td class="flightPlan-info-label">Route Dist:</td> 
+               <td>
+                <span id="fpInfo-RouteDistance"></span>
+               </td>
+           </tr>
+	   </table>
+	</div>
+	<div id="flightplan-help"><p align='justify'>Fill the route above with all the waypoints separated by spaces. This waypoints might be VOR, FIX or Airports.</p></div>
 	<div id="panel-fp">
 	    <div>
 			<!-- <textarea id="boxFlightPlan" rows="6" cols="61" placeholder="Enter your fligth plan...">SBSP TBE ANISE LODOG XOKIX VUREP SBRJ</textarea> -->
