@@ -112,8 +112,9 @@ function initialize() {
 		$('#nofocus').click();
 	});
 
-	$('body').keyup(function(e) {
+	$('body').keydown(function(e) {
 		if (e.keyCode == 192) {
+			e.preventDefault();
 			toggleFlightPanel();
 		}
 	});
