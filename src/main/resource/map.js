@@ -211,6 +211,7 @@ function loadFlightPlan() {
 	var arrCoord = new Array();
 	arrCoord[0] = departureLatLng;
 	var totalWaypoints = 0;
+	var totalDistance = 0;
 	while (totalWaypoints < flightPlan.waypoints.length) {
 		arrCoord[totalWaypoints + 1] = 
 			new google.maps.LatLng(
@@ -259,9 +260,14 @@ function loadFlightPlan() {
 	}
 	markAirport(destination,'destination');
 	
+	// Panel Info Flight Plan
+	$("#fpInfo-Departure").text(departure.id + ' - ' + departure.name + ' Airport');
+	$("#fpInfo-Destination").text(destination.id + ' - ' + destination.name + ' Airport');
+	
 	// Mark Labels Bearing/Distance
 	var index = 0;
 	while (index < flightPlan.infoRoute.length) {
+		totalDistance += flightPlan.infoRoute[index].distanceNM;
 		labelRoute = {
 			distanceNM : flightPlan.infoRoute[index].distanceNM,
 			distance : flightPlan.infoRoute[index].distance,
@@ -282,6 +288,12 @@ function loadFlightPlan() {
 		index++;
 	}
 
+	$("#fpInfo-RouteDistance")
+		.text(
+			numeral(totalDistance).format('0,0') + 'nm' + ' / ' +
+			numeral((totalDistance * 1.852)).format('0,0') + 'km'
+	        );
+	        
 	var panFlightPlan = new google.maps.LatLngBounds(departureLatLng, destinationLatLng);
 	map.fitBounds(panFlightPlan);
 	map.panToBounds(panFlightPlan);
