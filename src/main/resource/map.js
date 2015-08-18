@@ -188,6 +188,7 @@ function checkFlightPlanBoxAndLoad() {
 				};
 			}
 			
+			loadingFlightPlanState(true);
 			$.getJSON("flightplan",params
 				)
 				.done(function(data) {
@@ -196,12 +197,24 @@ function checkFlightPlanBoxAndLoad() {
 						}
 						flightPlan = data;
 						loadFlightPlan();
+						loadingFlightPlanState(false);
 				})
 				.error(
 						function() {
+							loadingFlightPlanState(false);
 							showError('Please check the connection with http://server:port/flightplan, is not working.')
 						});
 		}
+	}
+}
+
+function loadingFlightPlanState(loading) {
+	if ( loading ) {
+		$("#flightplan-loading").show();
+		$("#boxFlightPlan").css('color', 'lightgray');
+	} else {
+		$("#flightplan-loading").hide();
+		$("#boxFlightPlan").css('color', 'black');
 	}
 }
 
