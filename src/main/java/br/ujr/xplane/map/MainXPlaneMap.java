@@ -53,6 +53,7 @@ public class MainXPlaneMap {
 		Socket s = new Socket("google.com", 80);
 		String url = "http://" + s.getLocalAddress().getHostAddress() + ":8000/";
 		s.close();
+		
 		/*if (Desktop.isDesktopSupported()) {
 			Desktop desktop = Desktop.getDesktop();
 			try {
@@ -68,8 +69,8 @@ public class MainXPlaneMap {
 				e.printStackTrace();
 			}
 		}*/
-		logger.info("Started browser");
-		logger.info("The map is now visible at address " + url + " on this computer and any device on the same network.");
+		
+		logger.info("Map is accessible by the: " + url);
 	}
 
 	static class MyHandler implements HttpHandler {
