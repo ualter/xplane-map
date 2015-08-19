@@ -340,5 +340,14 @@ public class MainXPlaneMap implements UDPMessageListener {
 			System.out.println("[" + param + "] = "  + f);
 		}
 	}
+	
+	public void setDataRefValue(String dataRef, float value) {
+		DATAREFMessage drefMessage = new DATAREFMessage(dataRef, value);
+		this.sendMessage(drefMessage);
+	}
+	
+	public void sendMessage(UDPMessage xpm) {
+		this.udpSender.send(xpm.toByteBuffer());
+	}
 
 }
