@@ -11,22 +11,6 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 	
-	<!-- Annotations
-	Check this:
-	   * http://www.nuclearprojects.com/xplane/info.shtml
-	     Explain how the UDP sent fro X-Plane, save this bookmark
-	     
-	   * http://www.nuclearprojects.com/xplane/xplaneref.html
-	     UDP X-Plane reference
-	     
-	   * http://www.heimetli.ch/udp/UDPClient.html
-	     Simple Java UDP Client
-	     
-	   * http://loading.io/
-	     http://preloaders.net/ (aviaozinho)
-	     Icons loading
-	-->
-
 	<dependencies>
 		<dependency>
 			<groupId>junit</groupId>
