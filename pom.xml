@@ -328,3 +328,158 @@ public class DSELMessage extends UDPMessage {
 }
 
 -->
+
+<!--   *********************************************** USELMessages
+package br.ujr.xplane.comm.message;
+
+
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+
+public class USELMessage extends UDPMessage {
+	
+	private int[] data;
+	
+	public USELMessage() {
+		setProlouge("USEL0");
+	}
+	
+	public USELMessage(int[] data) {
+		this();
+		this.data = data;
+	}
+
+	public USELMessage(String data) {
+		this();
+		String aux[] = data.split(",");
+		this.data = new int[aux.length];
+		for (int i = 0; i < aux.length; i++) {
+			this.data[i] = Integer.parseInt(aux[i]);
+		}
+	}
+	
+	@Override
+	public ByteBuffer toByteBuffer() {
+        ByteBuffer byteBuffer = ByteBuffer.allocate(5 + (data.length*4));
+    	String prolougue = getProlouge();
+    	byteBuffer.put(prolougue.getBytes());
+    	byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+    	for (int i = 0; i < data.length; i++) {
+    		byteBuffer.putInt(data[i]);
+    	}
+    	return byteBuffer;
+	}
+
+	@Override
+	public ByteBuffer toByteBufferWithoutPrologue() {
+		return null;
+	}
+}
+-->
+
+<!-- *********************************************** PAUSMessage
+package br.ujr.xplane.comm.message;
+
+import java.nio.ByteBuffer;
+
+public class PAUSMessage extends UDPMessage {
+	
+	private char data;
+	
+	public PAUSMessage() {
+		setProlouge("PAUS0");
+	}
+	
+	@Override
+	public ByteBuffer toByteBuffer() {
+        ByteBuffer byteBuffer = ByteBuffer.allocate(5);
+    	String prolougue = getProlouge();
+    	byteBuffer.put(prolougue.getBytes());
+    	return byteBuffer;
+	}
+
+	@Override
+	public ByteBuffer toByteBufferWithoutPrologue() {
+		return null;
+	}
+
+	public char getData() {
+		return data;
+	}
+
+	public void setData(char data) {
+		this.data = data;
+	}
+
+}
+-->
+
+<!-- *********************************************** DATAREFMessage
+package br.ujr.xplane.comm.message;
+
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+
+public class DATAREFMessage extends UDPMessage {
+	
+	private float value;
+	private String dataRef;
+	
+	public DATAREFMessage(String dataRef, float value) {
+		setProlouge("DREF0");
+		this.dataRef = dataRef;
+		this.value = value;
+	}
+	
+	@Override
+	public ByteBuffer toByteBuffer() {
+        ByteBuffer byteBuffer = ByteBuffer.allocate(getProlouge().length() + 4 + 500);
+
+    	String prolougue = getProlouge();
+    	
+    	byteBuffer.put(prolougue.getBytes());
+    	byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+    	byteBuffer.putFloat(value);
+    	byteBuffer.put(dataRef.getBytes());
+    	
+    	return byteBuffer;
+	}
+	
+	@Override
+	public ByteBuffer toByteBufferWithoutPrologue() {
+        ByteBuffer byteBuffer = ByteBuffer.allocate(4 + 1);
+    	return byteBuffer;
+	}
+}
+-->
+
+<!-- *********************************************** CHARMessage
+package br.ujr.xplane.comm.message;
+
+import java.nio.ByteBuffer;
+
+public class CHARMessage extends UDPMessage {
+	
+	private char key;
+	
+	public CHARMessage(char key) {
+		setProlouge("CHAR0");
+		this.key = key;
+	}
+	
+	@Override
+	public ByteBuffer toByteBuffer() {
+        ByteBuffer byteBuffer = ByteBuffer.allocate(5 + 2);
+    	String prol = getProlouge();
+    	byteBuffer.put(prol.getBytes());
+    	byteBuffer.put((byte)key);
+    	return byteBuffer;
+	}
+
+	@Override
+	public ByteBuffer toByteBufferWithoutPrologue() {
+		return null;
+	}
+}
+-->
+
