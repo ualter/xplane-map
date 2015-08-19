@@ -39,7 +39,13 @@ public class UDPListener implements Runnable {
 						Float lat = Float.valueOf(ByteBuffer.wrap(Arrays.copyOfRange(receivePacket.getData(), 9, 13)).order(ByteOrder.LITTLE_ENDIAN).getFloat());
 						Float lon = Float.valueOf(ByteBuffer.wrap(Arrays.copyOfRange(receivePacket.getData(), 13, 17)).order(ByteOrder.LITTLE_ENDIAN).getFloat());
 						Float alt = Float.valueOf(ByteBuffer.wrap(Arrays.copyOfRange(receivePacket.getData(), 17, 21)).order(ByteOrder.LITTLE_ENDIAN).getFloat());
+						
+						//Float hSpeed = Float.valueOf(ByteBuffer.wrap(Arrays.copyOfRange(receivePacket.getData(), 29, 34)).order(ByteOrder.LITTLE_ENDIAN).getFloat());
+						//System.out.println(hSpeed + ", " + alt);
+						System.out.println(new String(receivePacket.getData()));
+						
 						this.updatePosition(lat, lon, alt, IPAddress);
+						
 					} else {
 						logger.info("Received ident:" + ident);
 					}

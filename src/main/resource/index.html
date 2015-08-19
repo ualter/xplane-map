@@ -5,6 +5,7 @@
 <link rel="stylesheet" type="text/css" href="map.css" media="all"/>
 <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCkS0sO3oxa5OOmH1ujaWYFLjKLOh6OSNw&libraries=geometry"></script>
 <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.3.js"></script>
+<script type="text/javascript" src="jquery-blink.js"></script>
 <script type="text/javascript" src="http://www.google.com/jsapi"></script>
 <script type="text/javascript" src="map.js"></script>
 <script type="text/javascript" src="markerwithlabel.js"></script>
@@ -48,16 +49,21 @@
 			<!-- <textarea id="boxFlightPlan" rows="6" cols="64" placeholder="Enter your fligth plan...">KSEA LODOG SBRJ</textarea> -->
 		</div>
 		<div id='flightplan-loading'>
-		  <table cellspacing='0' cellpadding='0'>
+		  <table cellspacing='0' cellpadding='0' border=0>
 		      <tr>
 		          <td valign='middle'><img src="loading.gif"/></td>
-		          <td valign='middle'>Loading Flight Plan...</td>
+		          <td valign='middle'>&nbsp;<span class='blink'>Loading Flight Plan...</span></td>
 		      </tr>
 		  </table>
 		</div>
 	</div>
 	<div id="errorBox"></div>
 	<script type="text/javascript">
+		$(document).ready(function()
+		{
+		        $('.blink').blink(400); // default is 500ms blink interval.
+		});
+		
 		$('input[name=plane]').change(function() {
 			$('.planeRow').removeClass("followed");
 			$('input[name=plane]:checked').parents('.planeRow').addClass("followed");

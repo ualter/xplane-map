@@ -53,7 +53,7 @@ public class MainXPlaneMap {
 		Socket s = new Socket("google.com", 80);
 		String url = "http://" + s.getLocalAddress().getHostAddress() + ":8000/";
 		s.close();
-		if (Desktop.isDesktopSupported()) {
+		/*if (Desktop.isDesktopSupported()) {
 			Desktop desktop = Desktop.getDesktop();
 			try {
 				desktop.browse(new URI(url));
@@ -67,7 +67,7 @@ public class MainXPlaneMap {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-		}
+		}*/
 		logger.info("Started browser");
 		logger.info("The map is now visible at address " + url + " on this computer and any device on the same network.");
 	}
@@ -114,6 +114,8 @@ public class MainXPlaneMap {
 				sendFile(t, "map.js");
 			} else if (req.startsWith("/numeral.min.js")) {
 				sendFile(t, "numeral.min.js");
+			} else if (req.startsWith("/jquery-blink.js")) {
+				sendFile(t, "jquery-blink.js");	
 			} else if (req.startsWith("/markerwithlabel.js")) {
 				sendFile(t, "markerwithlabel.js");
 			} else if (req.startsWith("/map.css")) {
