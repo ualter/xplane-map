@@ -1,6 +1,5 @@
 package br.ujr.xplane.map;
 
-import java.awt.Desktop;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -8,7 +7,6 @@ import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.URI;
 import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.Map;
@@ -19,6 +17,8 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import br.ujr.xplane.comm.UDPSender;
+import br.ujr.xplane.comm.message.DSELMessage;
 import br.ujr.xplane.map.fmsdata.Airport;
 import br.ujr.xplane.map.fmsdata.FMSDataManager;
 import br.ujr.xplane.map.fmsdata.Fix;
@@ -34,25 +34,15 @@ public class MainXPlaneMap {
 
 	public static Logger			logger	= LoggerFactory.getLogger(MainXPlaneMap.class);
 
+	
 	public static FMSDataManager	fms;
+	private int       port = 49003;
+	private UDPSender udpSender;
+	
 
-	public static void main(String[] args) throws Exception {
-
-		fms = new FMSDataManager();
-		PlanesList list = new PlanesList();
-
-		new Thread(new UDPListener(list)).start();
-		logger.info("Started listening to X-Plane");
-
-		HttpServer server = HttpServer.create(new InetSocketAddress(8000), 0);
-		server.createContext("/", new MyHandler(list));
-		server.setExecutor(null);
-		server.start();
-		logger.info("Started the web server");
-
-		Socket s = new Socket("google.com", 80);
-		String url = "http://" + s.getLocalAddress().getHostAddress() + ":8000/";
-		s.close();
+	public static void main(String[] args)  {
+		
+		new MainXPlaneMap();
 		
 		/*if (Desktop.isDesktopSupported()) {
 			Desktop desktop = Desktop.getDesktop();
@@ -70,7 +60,52 @@ public class MainXPlaneMap {
 			}
 		}*/
 		
-		logger.info("Map is accessible by the: " + url);
+		
+	}
+	
+	public MainXPlaneMap() {
+		this.init();
+		this.registerDATAMessages("18");
+	}
+	
+	public void init() {
+		fms = new FMSDataManager();
+		PlanesList list = new PlanesList();
+		
+		new Thread(new UDPListener(list)).start();
+		logger.info("Started listening to X-Plane");
+		
+		HttpServer server = null;
+		Socket socket = null;
+		try {
+			server = HttpServer.create(new InetSocketAddress(8000), 0);
+			server.createContext("/", new MyHandler(list));
+			server.setExecutor(null);
+			server.start();
+			logger.info("Started the web server");
+
+			socket = new Socket("google.com", 80);
+			String url = "http://" + socket.getLocalAddress().getHostAddress() + ":8000/";
+			socket.close();
+			
+			udpSender = new UDPSender(socket.getInetAddress().toString(), port);
+			logger.info("Map is accessible by the: " + url);
+		} catch (IOException e) {
+			logger.error(e.getMessage(),e);
+			throw new RuntimeException(e);
+		} finally {
+			try {
+				if (socket != null ) socket.close();
+			} catch (IOException e) {
+				logger.warn(e.getMessage());
+			}
+		}
+	}
+	
+	public void registerDATAMessages(String data) {
+		DSELMessage message = new DSELMessage(data);
+		udpSender.send(message.toByteBuffer());
+		//Integer[] a = Utils.toIntArray(data);
 	}
 
 	static class MyHandler implements HttpHandler {
