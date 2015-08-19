@@ -18,7 +18,7 @@ html, body, #map-canvas {
 	border: 2px solid #595959;
 	background-color: #50000E;
 	color: #fff;
-	width: 573px;
+	width: 600px;
 	display: none;
 	text-align: center;
 	font-size: 15px;
@@ -62,14 +62,14 @@ html, body, #map-canvas {
 	text-decoration: none;
 	box-shadow: 4px 4px 4px 0px rgba(50, 50, 50, 0.75);
 	border: 1px solid #000;
-	font-size: 12px;
+	font-size: 11px;
 	font-weight: 500;
 	background-color: rgba(0, 0, 0, 0.55);
 	color: #fff;
 	border-radius: 2px;
 	padding: 10px;
 	display: none;
-	width: 340px;
+	width: 130px;
 }
 #flightplan-button {
 	position: absolute;
@@ -85,11 +85,12 @@ html, body, #map-canvas {
 	padding: 5px;
 	cursor: pointer;
 	border-radius: 5px;
+	box-shadow: 4px 4px 4px 0px rgba(50, 50, 50, 0.75);
 }
 #plane-panel {
 	position: absolute;
 	top: 28px;
-	left: 205px;
+	left: 190px;
 	font-family: Verdana, Arial, sans-serif;
 	text-decoration: none;
 	font-size: 12px;
@@ -109,6 +110,7 @@ html, body, #map-canvas {
 	padding: 5px;
 	cursor: pointer;
 	border-radius: 5px;
+	box-shadow: 4px 4px 4px 0px rgba(50, 50, 50, 0.75);
 }
 #flightplan-button.down {
 	background-color: rgba(0,0,0,0.70);
@@ -193,4 +195,36 @@ html, body, #map-canvas {
     -ms-transform : rotate(66deg); 
     -o-transform : rotate(66deg); 
     transform : rotate(66deg); 
+}
+#flightplan-info {
+    z-index: 9999;
+    position: absolute;
+    top: 190px;
+    left: 253px;
+    font-family: Verdana, Arial, sans-serif;
+    text-decoration: none;
+    box-shadow: 4px 4px 4px 0px rgba(50, 50, 50, 0.75);
+    border: 1px solid #000;
+    font-size: 12px;
+    font-weight: 500;
+    background-color: rgba(0, 0, 0, 0.75);
+    color: yellow;
+    border-radius: 2px;
+    padding: 10px;
+    display: none;
+    width: 430px;
+}
+.flightPlan-info-label {
+    font-family: monospace;
+    font-size: 13px;
+    color: white;
+}
+#flightplan-loading {
+	position: absolute; 
+	top: 42px; 
+	left: 30px; 
+	z-index: 9999;
+	color: black;
+	font-family: monospace;
+	font-size:11px;
 }

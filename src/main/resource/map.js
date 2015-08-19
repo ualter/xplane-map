@@ -112,8 +112,9 @@ function initialize() {
 		$('#nofocus').click();
 	});
 
-	$('body').keyup(function(e) {
-		if (e.keyCode == 9) {
+	$('body').keydown(function(e) {
+		if (e.keyCode == 192) {
+			e.preventDefault();
 			toggleFlightPanel();
 		}
 	});
@@ -187,6 +188,7 @@ function checkFlightPlanBoxAndLoad() {
 				};
 			}
 			
+			loadingFlightPlanState(true);
 			$.getJSON("flightplan",params
 				)
 				.done(function(data) {
@@ -195,12 +197,24 @@ function checkFlightPlanBoxAndLoad() {
 						}
 						flightPlan = data;
 						loadFlightPlan();
+						loadingFlightPlanState(false);
 				})
 				.error(
 						function() {
+							loadingFlightPlanState(false);
 							showError('Please check the connection with http://server:port/flightplan, is not working.')
 						});
 		}
+	}
+}
+
+function loadingFlightPlanState(loading) {
+	if ( loading ) {
+		$("#flightplan-loading").show();
+		$("#boxFlightPlan").css('color', 'lightgray');
+	} else {
+		$("#flightplan-loading").hide();
+		$("#boxFlightPlan").css('color', 'black');
 	}
 }
 
@@ -211,6 +225,7 @@ function loadFlightPlan() {
 	var arrCoord = new Array();
 	arrCoord[0] = departureLatLng;
 	var totalWaypoints = 0;
+	var totalDistance = 0;
 	while (totalWaypoints < flightPlan.waypoints.length) {
 		arrCoord[totalWaypoints + 1] = 
 			new google.maps.LatLng(
@@ -259,9 +274,14 @@ function loadFlightPlan() {
 	}
 	markAirport(destination,'destination');
 	
+	// Panel Info Flight Plan
+	$("#fpInfo-Departure").text(departure.id + ' - ' + departure.name + ' Airport');
+	$("#fpInfo-Destination").text(destination.id + ' - ' + destination.name + ' Airport');
+	
 	// Mark Labels Bearing/Distance
 	var index = 0;
 	while (index < flightPlan.infoRoute.length) {
+		totalDistance += flightPlan.infoRoute[index].distanceNM;
 		labelRoute = {
 			distanceNM : flightPlan.infoRoute[index].distanceNM,
 			distance : flightPlan.infoRoute[index].distance,
@@ -282,6 +302,12 @@ function loadFlightPlan() {
 		index++;
 	}
 
+	$("#fpInfo-RouteDistance")
+		.text(
+			numeral(totalDistance).format('0,0') + 'nm' + ' / ' +
+			numeral((totalDistance * 1.852)).format('0,0') + 'km'
+	        );
+	        
 	var panFlightPlan = new google.maps.LatLngBounds(departureLatLng, destinationLatLng);
 	map.fitBounds(panFlightPlan);
 	map.panToBounds(panFlightPlan);
@@ -638,7 +664,9 @@ function updatePosition() {
 				}
 				// move map if checkbox checked
 				if ( chaseAirplane ) {
-					map.panTo(new google.maps.LatLng(planeList[planeToFollow].lat,planeList[planeToFollow].lon));
+					if ( planeList[planeToFollow] != undefined ) {
+						map.panTo(new google.maps.LatLng(planeList[planeToFollow].lat,planeList[planeToFollow].lon));
+					}
 				}
 			})
 	.error(
@@ -716,12 +744,14 @@ function toggleFlightPanel() {
 function hideFlightPanel() {
 	$('#panel-fp').hide(500);
 	$('#flightplan-help').hide(300);
+	$('#flightplan-info').hide(300);
 	$('#flightplan-button').removeClass("down").addClass("up");
 }
 
 function showFlightPanel() {
 	$('#panel-fp').show(500);
 	$('#flightplan-help').show(300);
+	$('#flightplan-info').show(300);
 	$('#flightplan-button').removeClass("up").addClass("down");
 	$('#boxFlightPlan').focus();
 }

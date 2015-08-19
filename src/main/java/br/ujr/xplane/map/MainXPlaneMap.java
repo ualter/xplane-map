@@ -130,6 +130,8 @@ public class MainXPlaneMap {
 				sendFile(t, "takeoff.png");	
 			} else if (req.startsWith("/landing.png")) {
 				sendFile(t, "landing.png");	
+			} else if (req.startsWith("/loading.gif")) {
+				sendFile(t, "loading.gif");	
 			} else {
 				sendFile(t, "index.html");
 			}
