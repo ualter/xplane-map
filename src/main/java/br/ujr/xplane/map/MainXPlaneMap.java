@@ -17,7 +17,10 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import br.ujr.xplane.comm.UDPMessageListener;
+import br.ujr.xplane.comm.UDPReceiver;
 import br.ujr.xplane.comm.UDPSender;
+import br.ujr.xplane.comm.message.DATAMessage;
 import br.ujr.xplane.comm.message.DSELMessage;
 import br.ujr.xplane.map.fmsdata.Airport;
 import br.ujr.xplane.map.fmsdata.FMSDataManager;
@@ -30,7 +33,7 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 
-public class MainXPlaneMap {
+public class MainXPlaneMap implements UDPMessageListener {
 
 	public static Logger			logger	= LoggerFactory.getLogger(MainXPlaneMap.class);
 
@@ -38,6 +41,7 @@ public class MainXPlaneMap {
 	public static FMSDataManager	fms;
 	private int       port = 49003;
 	private UDPSender udpSender;
+	private UDPReceiver udpReceiver;
 	
 
 	public static void main(String[] args)  {
@@ -88,8 +92,14 @@ public class MainXPlaneMap {
 			String url = "http://" + socket.getLocalAddress().getHostAddress() + ":8000/";
 			socket.close();
 			
-			udpSender = new UDPSender(socket.getInetAddress().toString(), port);
+			String ip = socket.getInetAddress().toString();
+			udpSender = new UDPSender(ip, port);
+			udpReceiver = new UDPReceiver(ip, port);
+			udpReceiver.addUDPMessageListener(this);
+			udpReceiver.start();
+			
 			logger.info("Map is accessible by the: " + url);
+			
 		} catch (IOException e) {
 			logger.error(e.getMessage(),e);
 			throw new RuntimeException(e);
@@ -105,7 +115,6 @@ public class MainXPlaneMap {
 	public void registerDATAMessages(String data) {
 		DSELMessage message = new DSELMessage(data);
 		udpSender.send(message.toByteBuffer());
-		//Integer[] a = Utils.toIntArray(data);
 	}
 
 	static class MyHandler implements HttpHandler {
@@ -312,6 +321,23 @@ public class MainXPlaneMap {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+		}
+	}
+
+	@Override
+	public void listenTo(DATAMessage message) {
+		System.out.println("Received: " + message.getIndex());
+		
+		int param = 0;
+		System.out.println("RX Data");
+		for(float f : message.getRxData()) {
+			System.out.println("[" + param + "] = "  + f);
+		}
+		
+		param = 0;
+		System.out.println("TX Data");
+		for(float f : message.getTxData()) {
+			System.out.println("[" + param + "] = "  + f);
 		}
 	}
 
