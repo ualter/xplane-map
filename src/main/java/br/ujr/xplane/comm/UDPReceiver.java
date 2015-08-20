@@ -3,6 +3,7 @@ package br.ujr.xplane.comm;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
@@ -13,7 +14,9 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class UDPReceiver extends DaemonThreads {
+import br.ujr.xplane.comm.message.DATAMessage;
+
+public class UDPReceiver extends DaemonThread {
 
 	DatagramSocket						datagram_socket;
 	byte[]								receive_buffer;
@@ -53,7 +56,7 @@ public class UDPReceiver extends DaemonThreads {
 					logger.info("UDP reception re-established");
 				}
 
-				this.receiveData(packet.getData());
+				this.receiveData(packet.getAddress(), packet.getData());
 
 			} catch (SocketTimeoutException ste) {
 				if (this.has_reception == true) {
@@ -67,11 +70,9 @@ public class UDPReceiver extends DaemonThreads {
 		logger.info("X-Plane receiver stopped");
 	}
 
-	public void receiveData(byte[] sim_data) throws Exception {
+	public void receiveData(InetAddress IPAddress, byte[] sim_data) throws Exception {
 		String packet_type = new String(sim_data, 0, 4).trim();
-
 		if (packet_type.equals("DATA")) {
-
 			int pos = 5;
 			for (int times = 0; times < this.chunks; times++) {
 				int index; // , segments;
@@ -79,7 +80,6 @@ public class UDPReceiver extends DaemonThreads {
 				
 				ByteBuffer byteBuffer = ByteBuffer.wrap(sim_data, pos, sim_data.length - pos);
 				byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
-
 				index = byteBuffer.getInt();
 				/*
 				 * Compose the Data
@@ -90,14 +90,12 @@ public class UDPReceiver extends DaemonThreads {
 					value = byteBuffer.getFloat();
 					dataMessage.getRxData()[i] = value;
 				}
-
 				/*
 				 * Spread the information
 				 */
 				for (UDPMessageListener l : this.udpListeners) {
-					l.listenTo(dataMessage);
+					l.listenTo(IPAddress,dataMessage);
 				}
-				
 				// next chunk of data
 				pos += 36;
 			}

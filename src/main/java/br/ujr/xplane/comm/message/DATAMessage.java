@@ -1,9 +1,7 @@
-package br.ujr.xplane.comm;
+package br.ujr.xplane.comm.message;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-
-import br.ujr.xplane.comm.message.UDPMessage;
 
 public class DATAMessage extends UDPMessage {
 	

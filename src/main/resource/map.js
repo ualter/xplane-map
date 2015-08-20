@@ -117,6 +117,9 @@ function initialize() {
 			e.preventDefault();
 			toggleFlightPanel();
 		}
+		if (e.keyCode == 19) {
+			$.getJSON("pause").done(function(data){}).error(function() {showError('Not able to Pause X-Plane.')});
+		}
 	});
 
 	updatePosition();

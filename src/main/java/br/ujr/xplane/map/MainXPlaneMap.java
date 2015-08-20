@@ -5,24 +5,28 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import br.ujr.xplane.comm.DATAMessage;
 import br.ujr.xplane.comm.UDPMessageListener;
 import br.ujr.xplane.comm.UDPReceiver;
 import br.ujr.xplane.comm.UDPSender;
+import br.ujr.xplane.comm.message.DATAMessage;
 import br.ujr.xplane.comm.message.DATAREFMessage;
 import br.ujr.xplane.comm.message.DSELMessage;
+import br.ujr.xplane.comm.message.DataSetXPlane;
+import br.ujr.xplane.comm.message.PAUSMessage;
 import br.ujr.xplane.comm.message.UDPMessage;
 import br.ujr.xplane.map.fmsdata.Airport;
 import br.ujr.xplane.map.fmsdata.FMSDataManager;
@@ -43,6 +47,7 @@ public class MainXPlaneMap implements UDPMessageListener {
 	private UDPSender				udpSender;
 	private UDPReceiver				udpReceiver;
 	private String					dataToCapture	= "20,103,132";
+	private PlanesList				planeList		= new PlanesList();
 
 	public static void main(String[] args) {
 
@@ -65,16 +70,13 @@ public class MainXPlaneMap implements UDPMessageListener {
 
 	public void init() {
 		fms = new FMSDataManager();
-		PlanesList list = new PlanesList();
-
-		// new Thread(new UDPListener(list)).start();
 		logger.info("Started listening to X-Plane");
 
 		HttpServer server = null;
 		Socket socket = null;
 		try {
 			server = HttpServer.create(new InetSocketAddress(8000), 0);
-			server.createContext("/", new MyHandler(list));
+			server.createContext("/", new MyHandler(this,this.planeList));
 			server.setExecutor(null);
 			server.start();
 			logger.info("Started the web server");
@@ -91,7 +93,6 @@ public class MainXPlaneMap implements UDPMessageListener {
 			udpReceiver.start();
 
 			logger.info("Map is accessible by the: " + url);
-
 		} catch (IOException e) {
 			logger.error(e.getMessage(), e);
 			throw new RuntimeException(e);
@@ -111,16 +112,17 @@ public class MainXPlaneMap implements UDPMessageListener {
 	}
 
 	static class MyHandler implements HttpHandler {
+		private MainXPlaneMap xPlaneMap;
 		private PlanesList	planesList;
 
-		public MyHandler(PlanesList list_) {
+		public MyHandler(MainXPlaneMap xPlaneMap, PlanesList list_) {
+			this.xPlaneMap = xPlaneMap;
 			this.planesList = list_;
 		}
 
 		@SuppressWarnings("unchecked")
 		public void handle(HttpExchange t) throws IOException {
 			String req = t.getRequestURI().toString();
-
 			if (req.startsWith("/data")) {
 				JSONObject planes = new JSONObject();
 				for (String ip : this.planesList.getLatMap().keySet()) {
@@ -148,32 +150,16 @@ public class MainXPlaneMap implements UDPMessageListener {
 					flightPlanJSON.put("messages", messages);
 					sendJSONObject(t, flightPlanJSON);
 				}
-			} else if (req.startsWith("/map.js")) {
-				sendFile(t, "map.js");
-			} else if (req.startsWith("/numeral.min.js")) {
-				sendFile(t, "numeral.min.js");
-			} else if (req.startsWith("/jquery-blink.js")) {
-				sendFile(t, "jquery-blink.js");
-			} else if (req.startsWith("/markerwithlabel.js")) {
-				sendFile(t, "markerwithlabel.js");
-			} else if (req.startsWith("/map.css")) {
-				sendFile(t, "map.css");
-			} else if (req.startsWith("/airport.png")) {
-				sendFile(t, "airport.png");
-			} else if (req.startsWith("/VOR.png")) {
-				sendFile(t, "VOR.png");
-			} else if (req.startsWith("/NDB.png")) {
-				sendFile(t, "NDB.png");
-			} else if (req.startsWith("/arrow.png")) {
-				sendFile(t, "arrow.png");
-			} else if (req.startsWith("/takeoff.png")) {
-				sendFile(t, "takeoff.png");
-			} else if (req.startsWith("/landing.png")) {
-				sendFile(t, "landing.png");
-			} else if (req.startsWith("/loading.gif")) {
-				sendFile(t, "loading.gif");
+			} else if (req.startsWith("/pause")) {
+				this.xPlaneMap.pauseXPlane();
 			} else {
-				sendFile(t, "index.html");
+				String resource = req.replaceAll("/", "");
+				logger.debug("Resource required to Web Server: {}",resource);
+				if ( StringUtils.isNotBlank(resource) ) {
+					sendFile(t, resource);
+				} else {
+					sendFile(t, "index.html");
+				}
 			}
 		}
 
@@ -321,18 +307,42 @@ public class MainXPlaneMap implements UDPMessageListener {
 		DATAREFMessage drefMessage = new DATAREFMessage(dataRef, value);
 		this.sendMessage(drefMessage);
 	}
+	
+	public void pauseXPlane() {
+		PAUSMessage pausMessage = new PAUSMessage();
+		this.sendMessage(pausMessage);
+	}
 
 	public void sendMessage(UDPMessage xpm) {
 		this.udpSender.send(xpm.toByteBuffer());
 	}
 
-	public void listenTo(DATAMessage message) {
-		System.out.println("Received: " + message.getIndex());
-		int param = 0;
-		System.out.println("RX Data");
-		for (float f : message.getRxData()) {
-			System.out.println("[" + param + "] = " + f);
+	public void listenTo(InetAddress IPAddress, DATAMessage message) {
+		if (logger.isDebugEnabled()) {
+			StringBuffer sb = new StringBuffer(message.getIndex() + " [");
+			int param = 0;
+			for (float f : message.getRxData()) {
+				sb.append(param + "=" + f);
+				sb.append(",");
+			}
+			sb.append("]");
+			logger.debug(sb.toString());
 		}
+
+		switch (message.getIndex()) {
+			case DataSetXPlane.LAT_LON_ALTITUDE: {
+				this.updatePosition(message.getRxData()[0], message.getRxData()[1], message.getRxData()[2], IPAddress);
+				break;
+			}
+			default:
+				break;
+		}
+	}
+
+	private void updatePosition(float lat, float lon, float alt, InetAddress IPAddress) {
+		this.planeList.setPlaneLat(IPAddress, lat);
+		this.planeList.setPlaneLon(IPAddress, lon);
+		this.planeList.setPlaneAlt(IPAddress, alt);
 	}
 
 }

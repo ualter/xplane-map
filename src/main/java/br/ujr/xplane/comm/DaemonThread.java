@@ -1,10 +1,10 @@
 package br.ujr.xplane.comm;
 
-public abstract class DaemonThreads extends Thread {
+public abstract class DaemonThread extends Thread {
 	
 	protected boolean runState = true;
 	
-	public DaemonThreads() {
+	public DaemonThread() {
 		this.setDaemon(true);
 	}
 

@@ -13,7 +13,9 @@ import java.util.concurrent.BlockingQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class UDPSender extends DaemonThreads {
+import br.ujr.xplane.comm.message.DATAMessage;
+
+public class UDPSender extends DaemonThread {
 
 	public static Logger				logger	= LoggerFactory.getLogger(UDPSender.class);
 
