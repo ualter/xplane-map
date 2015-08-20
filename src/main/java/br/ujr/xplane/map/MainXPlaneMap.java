@@ -17,11 +17,13 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import br.ujr.xplane.comm.DATAMessage;
 import br.ujr.xplane.comm.UDPMessageListener;
 import br.ujr.xplane.comm.UDPReceiver;
 import br.ujr.xplane.comm.UDPSender;
-import br.ujr.xplane.comm.message.DATAMessage;
+import br.ujr.xplane.comm.message.DATAREFMessage;
 import br.ujr.xplane.comm.message.DSELMessage;
+import br.ujr.xplane.comm.message.UDPMessage;
 import br.ujr.xplane.map.fmsdata.Airport;
 import br.ujr.xplane.map.fmsdata.FMSDataManager;
 import br.ujr.xplane.map.fmsdata.Fix;
@@ -35,50 +37,39 @@ import com.sun.net.httpserver.HttpServer;
 
 public class MainXPlaneMap implements UDPMessageListener {
 
-	public static Logger			logger	= LoggerFactory.getLogger(MainXPlaneMap.class);
+	public static Logger			logger			= LoggerFactory.getLogger(MainXPlaneMap.class);
 
-	
 	public static FMSDataManager	fms;
-	private int       port = 49003;
-	private UDPSender udpSender;
-	private UDPReceiver udpReceiver;
-	
+	private UDPSender				udpSender;
+	private UDPReceiver				udpReceiver;
+	private String					dataToCapture	= "20,103,132";
 
-	public static void main(String[] args)  {
-		
+	public static void main(String[] args) {
+
 		new MainXPlaneMap();
-		
-		/*if (Desktop.isDesktopSupported()) {
-			Desktop desktop = Desktop.getDesktop();
-			try {
-				desktop.browse(new URI(url));
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		} else {
-			Runtime runtime = Runtime.getRuntime();
-			try {
-				runtime.exec("xdg-open " + url);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}*/
-		
-		
+
+		/*
+		 * if (Desktop.isDesktopSupported()) { Desktop desktop =
+		 * Desktop.getDesktop(); try { desktop.browse(new URI(url)); } catch
+		 * (Exception e) { e.printStackTrace(); } } else { Runtime runtime =
+		 * Runtime.getRuntime(); try { runtime.exec("xdg-open " + url); } catch
+		 * (IOException e) { e.printStackTrace(); } }
+		 */
+
 	}
-	
+
 	public MainXPlaneMap() {
 		this.init();
-		this.registerDATAMessages("18");
+		this.registerDATAMessages(dataToCapture);
 	}
-	
+
 	public void init() {
 		fms = new FMSDataManager();
 		PlanesList list = new PlanesList();
-		
-		new Thread(new UDPListener(list)).start();
+
+		// new Thread(new UDPListener(list)).start();
 		logger.info("Started listening to X-Plane");
-		
+
 		HttpServer server = null;
 		Socket socket = null;
 		try {
@@ -89,29 +80,31 @@ public class MainXPlaneMap implements UDPMessageListener {
 			logger.info("Started the web server");
 
 			socket = new Socket("google.com", 80);
-			String url = "http://" + socket.getLocalAddress().getHostAddress() + ":8000/";
+			String ip = socket.getLocalAddress().getHostAddress();
+			String url = "http://" + ip + ":8000/";
 			socket.close();
-			
-			String ip = socket.getInetAddress().toString();
-			udpSender = new UDPSender(ip, port);
-			udpReceiver = new UDPReceiver(ip, port);
+
+			int chunks = dataToCapture.indexOf(",") > -1 ? dataToCapture.split(",").length : 1;
+			udpSender = new UDPSender(ip, 49000);
+			udpReceiver = new UDPReceiver(ip, 49003, chunks);
 			udpReceiver.addUDPMessageListener(this);
 			udpReceiver.start();
-			
+
 			logger.info("Map is accessible by the: " + url);
-			
+
 		} catch (IOException e) {
-			logger.error(e.getMessage(),e);
+			logger.error(e.getMessage(), e);
 			throw new RuntimeException(e);
 		} finally {
 			try {
-				if (socket != null ) socket.close();
+				if (socket != null)
+					socket.close();
 			} catch (IOException e) {
 				logger.warn(e.getMessage());
 			}
 		}
 	}
-	
+
 	public void registerDATAMessages(String data) {
 		DSELMessage message = new DSELMessage(data);
 		udpSender.send(message.toByteBuffer());
@@ -160,7 +153,7 @@ public class MainXPlaneMap implements UDPMessageListener {
 			} else if (req.startsWith("/numeral.min.js")) {
 				sendFile(t, "numeral.min.js");
 			} else if (req.startsWith("/jquery-blink.js")) {
-				sendFile(t, "jquery-blink.js");	
+				sendFile(t, "jquery-blink.js");
 			} else if (req.startsWith("/markerwithlabel.js")) {
 				sendFile(t, "markerwithlabel.js");
 			} else if (req.startsWith("/map.css")) {
@@ -174,11 +167,11 @@ public class MainXPlaneMap implements UDPMessageListener {
 			} else if (req.startsWith("/arrow.png")) {
 				sendFile(t, "arrow.png");
 			} else if (req.startsWith("/takeoff.png")) {
-				sendFile(t, "takeoff.png");	
+				sendFile(t, "takeoff.png");
 			} else if (req.startsWith("/landing.png")) {
-				sendFile(t, "landing.png");	
+				sendFile(t, "landing.png");
 			} else if (req.startsWith("/loading.gif")) {
-				sendFile(t, "loading.gif");	
+				sendFile(t, "loading.gif");
 			} else {
 				sendFile(t, "index.html");
 			}
@@ -198,8 +191,8 @@ public class MainXPlaneMap implements UDPMessageListener {
 							Fix fix = null;
 							boolean lastCharIsNumber = !Character.isLetter(wpt.charAt(wpt.length() - 1));
 							String wptFull = null;
-							if ( lastCharIsNumber ) {
-								wptFull = wpt.substring(0,wpt.length()-1) + "-" + wpt.substring(wpt.length()-1);
+							if (lastCharIsNumber) {
+								wptFull = wpt.substring(0, wpt.length() - 1) + "-" + wpt.substring(wpt.length() - 1);
 							}
 
 							// Look first for a Navaid
@@ -324,30 +317,22 @@ public class MainXPlaneMap implements UDPMessageListener {
 		}
 	}
 
-	@Override
-	public void listenTo(DATAMessage message) {
-		System.out.println("Received: " + message.getIndex());
-		
-		int param = 0;
-		System.out.println("RX Data");
-		for(float f : message.getRxData()) {
-			System.out.println("[" + param + "] = "  + f);
-		}
-		
-		param = 0;
-		System.out.println("TX Data");
-		for(float f : message.getTxData()) {
-			System.out.println("[" + param + "] = "  + f);
-		}
-	}
-	
 	public void setDataRefValue(String dataRef, float value) {
 		DATAREFMessage drefMessage = new DATAREFMessage(dataRef, value);
 		this.sendMessage(drefMessage);
 	}
-	
+
 	public void sendMessage(UDPMessage xpm) {
 		this.udpSender.send(xpm.toByteBuffer());
+	}
+
+	public void listenTo(DATAMessage message) {
+		System.out.println("Received: " + message.getIndex());
+		int param = 0;
+		System.out.println("RX Data");
+		for (float f : message.getRxData()) {
+			System.out.println("[" + param + "] = " + f);
+		}
 	}
 
 }
