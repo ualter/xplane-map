@@ -189,6 +189,10 @@ html, body, #map-canvas {
 	color: blue;
 	font-weight: bold;
 }
+.planeDataInfoRed {
+	color: red;
+	font-weight: bold;
+}
 .rotate {
      -webkit-transform : rotate(66deg); 
     -moz-transform : rotate(66deg); 

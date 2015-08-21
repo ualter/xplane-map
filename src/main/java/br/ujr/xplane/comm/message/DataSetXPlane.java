@@ -8,6 +8,6 @@ public class DataSetXPlane {
 	public static final int SPEEDS = 3;
 	public static final int GPS_STATUS = 19;
 	public static final int LAT_LON_ALTITUDE = 20;
-	public static final int CLIM_STATUS = 132;
+	public static final int CLIMB_STATUS = 132;
 
 }

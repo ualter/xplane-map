@@ -572,7 +572,6 @@ function updatePosition() {
 				for ( var ip in planeList) {
 					if (!(ip in data)) {
 						deletePlane(ip);
-						refreshControlPanel = true;
 					}
 				}
 				// for current and new planes
@@ -589,7 +588,9 @@ function updatePosition() {
 							marker : new google.maps.Marker(markerOptions),
 							trace : new google.maps.Polyline(polyOptions),
 							info : new google.maps.InfoWindow(),
-							color : color
+							color : color,
+							vSpeed : data[ip].vSpeed,
+							hSpeed : data[ip].hSpeed
 						};
 						planeList[ip].marker.setMap(map);
 						planeList[ip].marker.ip = ip; 
@@ -608,11 +609,12 @@ function updatePosition() {
 						
 						planeList[ip].trace.setMap(map);
 						planeToFollow = ip;
-						refreshControlPanel = true;
 					}
 					newLat = data[ip].lat;
 					newLon = data[ip].lon;
 					planeList[ip].alt = data[ip].alt;
+					planeList[ip].vSpeed = data[ip].vSpeed;
+					planeList[ip].hSpeed = data[ip].hSpeed;
 					var newPoint = new google.maps.LatLng(newLat,newLon);
 					planeList[ip].marker.setPosition(newPoint);
 					hdg = bearing(planeList[ip].lon, planeList[ip].lat,newLon, newLat);
@@ -630,7 +632,7 @@ function updatePosition() {
 					}
 					var hdgAirplane = Number(Math.floor(((hdg + 360) % 360))) + 20;
 					var infoContent = "<div id='iw_content'>";
-					infoContent += "<div style='margin: 0; width: 150px;'>";
+					infoContent += "<div style='margin: 0; width: 210px;'>";
 					infoContent += "<table border=0 cellspacing='0' cellpadding='0' width='100%'>";
 					
 					infoContent += " <tr><td>";
@@ -650,7 +652,17 @@ function updatePosition() {
 					infoContent += " </td></tr>";
 					
 					infoContent += " <tr><td>";
-					infoContent += " GS <span class='planeDataInfo'>" + spd.toFixed() + "</span>&nbsp;kts";
+					infoContent += " GS <span class='planeDataInfo'>" + spd.toFixed() + "</span>&nbsp;kts" + " / " +
+					               " AirSpeed <span class='planeDataInfo'>" + numeral(planeList[ip].hSpeed).format('0,0') + "</span>&nbsp;kts"
+					infoContent += " </td></tr>";
+					
+					infoContent += " <tr><td>";
+					if ( planeList[ip].vSpeed > -1 ) {
+						infoContent += " VS <span class='planeDataInfo'>";
+					} else {
+						infoContent += " VS <span class='planeDataInfoRed'>";
+					}		
+					infoContent += numeral(planeList[ip].vSpeed).format('0,0') + "</span>&nbsp;fpm";
 					infoContent += " </td></tr>";
 					
 					infoContent += "";

@@ -25,7 +25,6 @@ import br.ujr.xplane.comm.UDPSender;
 import br.ujr.xplane.comm.message.DATAMessage;
 import br.ujr.xplane.comm.message.DATAREFMessage;
 import br.ujr.xplane.comm.message.DSELMessage;
-import br.ujr.xplane.comm.message.DataSetXPlane;
 import br.ujr.xplane.comm.message.PAUSMessage;
 import br.ujr.xplane.comm.message.UDPMessage;
 import br.ujr.xplane.map.fmsdata.Airport;
@@ -124,14 +123,7 @@ public class MainXPlaneMap implements UDPMessageListener {
 		public void handle(HttpExchange t) throws IOException {
 			String req = t.getRequestURI().toString();
 			if (req.startsWith("/data")) {
-				JSONObject planes = new JSONObject();
-				for (String ip : this.planesList.getLatMap().keySet()) {
-					JSONObject latlon = new JSONObject();
-					latlon.put("lat", this.planesList.getLatMap().get(ip));
-					latlon.put("lon", this.planesList.getLonMap().get(ip));
-					latlon.put("alt", this.planesList.getAltMap().get(ip));
-					planes.put(ip.replace('.', '-').substring(1), latlon);
-				}
+				JSONObject planes = this.planesList.toJSON();
 				sendJSONObject(t, planes);
 			} else if (req.startsWith("/flightplan")) {
 				Map<String, String> parameters = extractParameters(req);
@@ -329,20 +321,8 @@ public class MainXPlaneMap implements UDPMessageListener {
 			logger.debug(sb.toString());
 		}
 
-		switch (message.getIndex()) {
-			case DataSetXPlane.LAT_LON_ALTITUDE: {
-				this.updatePosition(message.getRxData()[0], message.getRxData()[1], message.getRxData()[2], IPAddress);
-				break;
-			}
-			default:
-				break;
-		}
+		this.planeList.updateData(IPAddress, message);
 	}
-
-	private void updatePosition(float lat, float lon, float alt, InetAddress IPAddress) {
-		this.planeList.setPlaneLat(IPAddress, lat);
-		this.planeList.setPlaneLon(IPAddress, lon);
-		this.planeList.setPlaneAlt(IPAddress, alt);
-	}
+	
 
 }
