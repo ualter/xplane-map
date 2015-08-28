@@ -10,7 +10,7 @@ import java.nio.ByteOrder;
 import java.util.Arrays;
 
 @SuppressWarnings("unused")
-public class DataRefXPlane {
+public class DataRefXPlaneClient {
 
 	private String	_userNav1HasDme			= "sim/cockpit/radios/nav1_has_dme";
 	private String	_currentFrequencyNav1	= "sim/cockpit/radios/nav1_freq_hz";
@@ -32,28 +32,18 @@ public class DataRefXPlane {
 
 		Socket socket = null;
 		DatagramSocket updSocket = null;
+		DatagramPacket packet = null;
 		try {
 
 			socket = new Socket("google.com", 80);
 			String ip = socket.getLocalAddress().getHostAddress();
-			updSocket = new DatagramSocket(port, socket.getLocalAddress());
+			updSocket = new DatagramSocket();
 			
-			while (true) {
-				System.out.println("Listening...");
-				DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-				updSocket.receive(packet);
-				
-				System.out.println("Data coming...");
-				
-				byte[] sim_data = packet.getData();
-				
-				ByteBuffer byteBuffer = ByteBuffer.wrap(sim_data, 0, sim_data.length);
-				byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
-				System.out.println("Received: " + new String(byteBuffer.array()));
-				
-				byteBuffer.clear();
-				sim_data = null;
-			}
+			String msg = "Hello World from Java";
+			byte[] data = msg.getBytes();
+			
+			packet = new DatagramPacket(data, data.length,socket.getLocalAddress(),port);
+			updSocket.send(packet);
 
 		} catch (SocketException e) {
 			e.printStackTrace();
