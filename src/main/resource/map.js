@@ -630,7 +630,8 @@ function updatePosition() {
 					if ( airplaneLabel == '127.0.0.1' ) {
 						 airplaneLabel = 'YOU';
 					}
-					var hdgAirplane = Number(Math.floor(((hdg + 360) % 360))) + 20;
+					//var hdgAirplane = Number(Math.floor(((hdg + 360) % 360))) + 20;
+					var hdgAirplane = Number(Math.floor(((hdg + 360) % 360)));
 					var infoContent = "<div id='iw_content'>";
 					infoContent += "<div style='margin: 0; width: 210px;'>";
 					infoContent += "<table border=0 cellspacing='0' cellpadding='0' width='100%'>";

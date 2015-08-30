@@ -19,9 +19,11 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import br.ujr.xplane.comm.UDPMessageListener;
-import br.ujr.xplane.comm.UDPReceiver;
-import br.ujr.xplane.comm.UDPSender;
+import br.ujr.xplane.comm.UDPMessageListenerXPlaneDataInput;
+import br.ujr.xplane.comm.UDPReceiverXPlaneDataInput;
+import br.ujr.xplane.comm.UDPSenderXPlaneDataOuput;
+import br.ujr.xplane.comm.XPlaneMapPluginConnection;
+import br.ujr.xplane.comm.XPlaneMapPluginListener;
 import br.ujr.xplane.comm.message.DATAMessage;
 import br.ujr.xplane.comm.message.DATAREFMessage;
 import br.ujr.xplane.comm.message.DSELMessage;
@@ -38,15 +40,19 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 
-public class MainXPlaneMap implements UDPMessageListener {
+public class MainXPlaneMap implements UDPMessageListenerXPlaneDataInput, XPlaneMapPluginListener {
 
-	public static Logger			logger			= LoggerFactory.getLogger(MainXPlaneMap.class);
+	public static Logger				logger			= LoggerFactory.getLogger(MainXPlaneMap.class);
 
-	public static FMSDataManager	fms;
-	private UDPSender				udpSender;
-	private UDPReceiver				udpReceiver;
-	private String					dataToCapture	= "20,103,132";
-	private PlanesList				planeList		= new PlanesList();
+	public static FMSDataManager		fms;
+	private UDPSenderXPlaneDataOuput	udpSender;
+	private UDPReceiverXPlaneDataInput	udpReceiver;
+	private XPlaneMapPluginConnection	pluginConnection;
+	private String						dataToCapture	= "20,103,132";
+	private PlanesList					planeList		= new PlanesList();
+	private int							pluginPort		= 8881;
+	private int							portSender		= 49000;
+	private int							portReceiver	= 49003;
 
 	public static void main(String[] args) {
 
@@ -75,7 +81,7 @@ public class MainXPlaneMap implements UDPMessageListener {
 		Socket socket = null;
 		try {
 			server = HttpServer.create(new InetSocketAddress(8000), 0);
-			server.createContext("/", new MyHandler(this,this.planeList));
+			server.createContext("/", new MyHandler(this, this.planeList));
 			server.setExecutor(null);
 			server.start();
 			logger.info("Started the web server");
@@ -86,10 +92,13 @@ public class MainXPlaneMap implements UDPMessageListener {
 			socket.close();
 
 			int chunks = dataToCapture.indexOf(",") > -1 ? dataToCapture.split(",").length : 1;
-			udpSender = new UDPSender(ip, 49000);
-			udpReceiver = new UDPReceiver(ip, 49003, chunks);
+			udpSender = new UDPSenderXPlaneDataOuput(ip, portSender);
+			udpReceiver = new UDPReceiverXPlaneDataInput(ip, portReceiver, chunks);
 			udpReceiver.addUDPMessageListener(this);
 			udpReceiver.start();
+			pluginConnection = new XPlaneMapPluginConnection(pluginPort);
+			pluginConnection.addXPlaneMapPluginListener(this);
+			pluginConnection.start();
 
 			logger.info("Map is accessible by the: " + url);
 		} catch (IOException e) {
@@ -111,8 +120,8 @@ public class MainXPlaneMap implements UDPMessageListener {
 	}
 
 	static class MyHandler implements HttpHandler {
-		private MainXPlaneMap xPlaneMap;
-		private PlanesList	planesList;
+		private MainXPlaneMap	xPlaneMap;
+		private PlanesList		planesList;
 
 		public MyHandler(MainXPlaneMap xPlaneMap, PlanesList list_) {
 			this.xPlaneMap = xPlaneMap;
@@ -146,8 +155,8 @@ public class MainXPlaneMap implements UDPMessageListener {
 				this.xPlaneMap.pauseXPlane();
 			} else {
 				String resource = req.replaceAll("/", "");
-				logger.debug("Resource required to Web Server: {}",resource);
-				if ( StringUtils.isNotBlank(resource) ) {
+				logger.debug("Resource required to Web Server: {}", resource);
+				if (StringUtils.isNotBlank(resource)) {
 					sendFile(t, resource);
 				} else {
 					sendFile(t, "index.html");
@@ -299,7 +308,7 @@ public class MainXPlaneMap implements UDPMessageListener {
 		DATAREFMessage drefMessage = new DATAREFMessage(dataRef, value);
 		this.sendMessage(drefMessage);
 	}
-	
+
 	public void pauseXPlane() {
 		PAUSMessage pausMessage = new PAUSMessage();
 		this.sendMessage(pausMessage);
@@ -309,7 +318,7 @@ public class MainXPlaneMap implements UDPMessageListener {
 		this.udpSender.send(xpm.toByteBuffer());
 	}
 
-	public void listenTo(InetAddress IPAddress, DATAMessage message) {
+	public void listenToXPlaneDataInput(InetAddress IPAddress, DATAMessage message) {
 		if (logger.isDebugEnabled()) {
 			StringBuffer sb = new StringBuffer(message.getIndex() + " [");
 			int param = 0;
@@ -323,6 +332,28 @@ public class MainXPlaneMap implements UDPMessageListener {
 
 		this.planeList.updateData(IPAddress, message);
 	}
-	
+
+	public void listenToXPlaneMapPlugin(InetAddress IPAddress, String[] messages) {
+		String label, value;
+		for (String message : messages) {
+			System.out.println(message);
+
+			String[] messageParts = message.trim().split("=");
+			if (messageParts.length > 2) {
+				label = messageParts[0];
+				value = messageParts[1];
+
+				if (message.contains("destination")) {
+				} else if (message.contains("gamePaused")) {
+				} else if (message.contains("barometer")) {
+				} else if (message.contains("compassHeading")) {
+				} else if (message.contains("nav1FreqHz")) {
+				} else if (message.contains("nav2FreqHz")) {
+				} else if (message.contains("altitude")) {
+				} else if (message.contains("airspeed")) {
+				}
+			}
+		}
+	}
 
 }

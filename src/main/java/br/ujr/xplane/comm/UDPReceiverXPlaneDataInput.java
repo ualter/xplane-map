@@ -16,25 +16,25 @@ import org.slf4j.LoggerFactory;
 
 import br.ujr.xplane.comm.message.DATAMessage;
 
-public class UDPReceiver extends DaemonThread {
+public class UDPReceiverXPlaneDataInput extends DaemonThread  {
 
 	DatagramSocket						datagram_socket;
 	byte[]								receive_buffer;
 	boolean								has_reception;
-	private List<UDPMessageListener>	udpListeners	= new ArrayList<UDPMessageListener>();
-	public static Logger				logger			= LoggerFactory.getLogger(UDPReceiver.class);
+	private List<UDPMessageListenerXPlaneDataInput>	udpListeners	= new ArrayList<UDPMessageListenerXPlaneDataInput>();
+	public static Logger				logger			= LoggerFactory.getLogger(UDPReceiverXPlaneDataInput.class);
 	private int							chunks;
 
-	public UDPReceiver(String ipAddress, int port, int chunks) throws SocketException {
+	public UDPReceiverXPlaneDataInput(String ipAddress, int port, int chunks) throws SocketException {
 		super();
 		this.receive_buffer = new byte[10000];
 		this.datagram_socket = new DatagramSocket(port);
-		this.datagram_socket.setSoTimeout(1000);
+		this.datagram_socket.setSoTimeout(2000);
 		this.has_reception = true;
 		this.chunks = chunks;
 	}
 
-	public void addUDPMessageListener(UDPMessageListener listener) {
+	public void addUDPMessageListener(UDPMessageListenerXPlaneDataInput listener) {
 		this.udpListeners.add(listener);
 	}
 
@@ -45,7 +45,7 @@ public class UDPReceiver extends DaemonThread {
 	}
 
 	public void run() {
-		logger.info("X-Plane receiver listening on port " + datagram_socket.getLocalPort());
+		logger.info("X-Plane DataInput: listening on port " + datagram_socket.getLocalPort());
 		DatagramPacket packet = null;
 		while (this.runState) {
 			try {
@@ -53,21 +53,22 @@ public class UDPReceiver extends DaemonThread {
 
 				if (this.has_reception == false) {
 					this.has_reception = true;
-					logger.info("UDP reception re-established");
+					logger.info("X-Plane DataInput: UDP reception re-established");
 				}
 
 				this.receiveData(packet.getAddress(), packet.getData());
 
 			} catch (SocketTimeoutException ste) {
 				if (this.has_reception == true) {
-					logger.info("No UDP reception");
+					logger.info("X-Plane DataInput: No UDP reception");
 					this.has_reception = false;
 				}
 			} catch (Exception e) {
-				logger.info("Caught error while waiting for UDP packets! (" + e.toString() + ")");
+				logger.info("X-Plane DataInput: Caught error while waiting for UDP packets! (" + e.toString() + ")");
+				throw new RuntimeException(e);
 			}
 		}
-		logger.info("X-Plane receiver stopped");
+		logger.info("X-Plane DataInput: stopped");
 	}
 
 	public void receiveData(InetAddress IPAddress, byte[] sim_data) throws Exception {
@@ -93,12 +94,31 @@ public class UDPReceiver extends DaemonThread {
 				/*
 				 * Spread the information
 				 */
-				for (UDPMessageListener l : this.udpListeners) {
-					l.listenTo(IPAddress,dataMessage);
+				for (UDPMessageListenerXPlaneDataInput l : this.udpListeners) {
+					l.listenToXPlaneDataInput(IPAddress,dataMessage);
 				}
 				// next chunk of data
 				pos += 36;
 			}
 		}
 	}
+	
+	/*
+	 * Just For tests (once in a while)
+	public static void main(String[] args) throws Exception {
+		Socket socket = new Socket("google.com", 80);
+		String ip = socket.getLocalAddress().getHostAddress();
+		String url = "http://" + ip + ":8000/";
+		socket.close();
+
+		System.out.println("START");
+		UDPReceiver udpReceiver = new UDPReceiver(ip, 49003, 3);
+		udpReceiver.addUDPMessageListener(udpReceiver);
+		udpReceiver.start();
+		while (true);
+		
+	}
+	public void listenTo(InetAddress IPAddress, DATAMessage message) {
+		System.out.println("Received:" + message);
+	}*/
 }

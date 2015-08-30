@@ -15,16 +15,16 @@ import org.slf4j.LoggerFactory;
 
 import br.ujr.xplane.comm.message.DATAMessage;
 
-public class UDPSender extends DaemonThread {
+public class UDPSenderXPlaneDataOuput extends DaemonThread {
 
-	public static Logger				logger	= LoggerFactory.getLogger(UDPSender.class);
+	public static Logger				logger	= LoggerFactory.getLogger(UDPSenderXPlaneDataOuput.class);
 
 	private DatagramSocket				datagramSocket;
 	private int							port;
 	private String						ipAddress;
 	private BlockingQueue<DATAMessage>	messageQueue;
 
-	public UDPSender(String ipAddress, int port) throws SocketException, UnknownHostException {
+	public UDPSenderXPlaneDataOuput(String ipAddress, int port) throws SocketException, UnknownHostException {
 		super();
 		this.port = port;
 		this.ipAddress = ipAddress;
