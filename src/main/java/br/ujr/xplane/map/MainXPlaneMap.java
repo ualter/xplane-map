@@ -1,5 +1,7 @@
 package br.ujr.xplane.map;
 
+import static br.ujr.xplane.comm.XPlaneMapPluginData.ALTITUDE;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -40,19 +42,21 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 
+
 public class MainXPlaneMap implements UDPMessageListenerXPlaneDataInput, XPlaneMapPluginListener {
 
-	public static Logger				logger			= LoggerFactory.getLogger(MainXPlaneMap.class);
+	public static Logger				logger						= LoggerFactory.getLogger(MainXPlaneMap.class);
 
 	public static FMSDataManager		fms;
 	private UDPSenderXPlaneDataOuput	udpSender;
 	private UDPReceiverXPlaneDataInput	udpReceiver;
 	private XPlaneMapPluginConnection	pluginConnection;
-	private String						dataToCapture	= "20,103,132";
-	private PlanesList					planeList		= new PlanesList();
-	private int							pluginPort		= 8881;
-	private int							portSender		= 49000;
-	private int							portReceiver	= 49003;
+	private String						dataToCapture				= "20,103,132";
+	private PlanesList					planeList					= new PlanesList();
+	private int							pluginPort					= 8881;
+	private int							portSender					= 49000;
+	private int							portReceiver				= 49003;
+	private Map<String, Boolean>		receivedDataXPlanePlugin	= new HashMap<String, Boolean>();
 
 	public static void main(String[] args) {
 
@@ -330,7 +334,7 @@ public class MainXPlaneMap implements UDPMessageListenerXPlaneDataInput, XPlaneM
 			logger.debug(sb.toString());
 		}
 
-		this.planeList.updateData(IPAddress, message);
+		this.planeList.updateDataXPlaneDataInput(IPAddress, message);
 	}
 
 	public void listenToXPlaneMapPlugin(InetAddress IPAddress, String[] messages) {
@@ -349,7 +353,9 @@ public class MainXPlaneMap implements UDPMessageListenerXPlaneDataInput, XPlaneM
 				} else if (message.contains("compassHeading")) {
 				} else if (message.contains("nav1FreqHz")) {
 				} else if (message.contains("nav2FreqHz")) {
-				} else if (message.contains("altitude")) {
+				} else if (message.contains(ALTITUDE)) {
+					//this.receivedDataXPlanePlugin(ALTITUDE)
+
 				} else if (message.contains("airspeed")) {
 				}
 			}

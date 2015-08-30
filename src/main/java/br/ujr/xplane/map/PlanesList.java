@@ -91,7 +91,7 @@ public class PlanesList {
 		return planes;
 	}
 
-	public void updateData(InetAddress ip, DATAMessage message) {
+	public void updateDataXPlaneDataInput(InetAddress ip, DATAMessage message) {
 		switch (message.getIndex()) {
 			case DataSetXPlane.LAT_LON_ALTITUDE: {
 				this.updatePosition(ip, message);
