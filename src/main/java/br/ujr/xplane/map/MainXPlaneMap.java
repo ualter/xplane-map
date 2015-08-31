@@ -1,6 +1,14 @@
 package br.ujr.xplane.map;
 
+import static br.ujr.xplane.comm.XPlaneMapPluginData.FUEL_QUANTITY;
+import static br.ujr.xplane.comm.XPlaneMapPluginData.AIRSPEED;
+import static br.ujr.xplane.comm.XPlaneMapPluginData.DESTINATION;
 import static br.ujr.xplane.comm.XPlaneMapPluginData.ALTITUDE;
+import static br.ujr.xplane.comm.XPlaneMapPluginData.BAROMETER;
+import static br.ujr.xplane.comm.XPlaneMapPluginData.COMPASS_HEADING;
+import static br.ujr.xplane.comm.XPlaneMapPluginData.GAME_PAUSED;
+import static br.ujr.xplane.comm.XPlaneMapPluginData.NAV1_FREQUENCY;
+import static br.ujr.xplane.comm.XPlaneMapPluginData.NAV2_FREQUENCY;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -47,18 +55,18 @@ import com.sun.net.httpserver.HttpServer;
 
 public class MainXPlaneMap implements UDPMessageListenerXPlaneDataInput, XPlaneMapPluginListener {
 
-	public static Logger				logger						= LoggerFactory.getLogger(MainXPlaneMap.class);
+	public static Logger				logger				= LoggerFactory.getLogger(MainXPlaneMap.class);
 
 	public static FMSDataManager		fms;
 	private UDPSenderXPlaneDataOuput	udpSender;
 	private UDPReceiverXPlaneDataInput	udpReceiver;
 	private XPlaneMapPluginConnection	pluginConnection;
-	private String						dataToCapture				= "20,103,132";
-	private PlanesList					planeList					= new PlanesList();
-	private int							pluginPort					= 8881;
-	private int							portSender					= 49000;
-	private int							portReceiver				= 49003;
-	private Set<String>					receivedDataXPlanePlugin	= new HashSet<String>();
+	private String						dataToCapture		= "20,103,132";
+	private PlanesList					planeList			= new PlanesList();
+	private int							pluginPort			= 8881;
+	private int							portSender			= 49000;
+	private int							portReceiver		= 49003;
+	private Set<String>					receivedFromPlugin	= new HashSet<String>();
 
 	public static void main(String[] args) {
 
@@ -349,17 +357,19 @@ public class MainXPlaneMap implements UDPMessageListenerXPlaneDataInput, XPlaneM
 				label = messageParts[0];
 				value = messageParts[1];
 
-				if (message.contains("destination")) {
-				} else if (message.contains("gamePaused")) {
-				} else if (message.contains("barometer")) {
-				} else if (message.contains("compassHeading")) {
-				} else if (message.contains("nav1FreqHz")) {
-				} else if (message.contains("nav2FreqHz")) {
+				if (message.contains(DESTINATION)) {
+				} else if (message.contains(GAME_PAUSED)) {
+				} else if (message.contains(BAROMETER)) {
+				} else if (message.contains(COMPASS_HEADING)) {
+				} else if (message.contains(NAV1_FREQUENCY)) {
+				} else if (message.contains(NAV2_FREQUENCY)) {
 				} else if (message.contains(ALTITUDE)) {
-					if (!this.receivedDataXPlanePlugin.contains(ALTITUDE))
-						this.receivedDataXPlanePlugin.add(ALTITUDE);
+					if (!this.receivedFromPlugin.contains(ALTITUDE))
+						this.receivedFromPlugin.add(ALTITUDE);
 					this.planeList.updateAltitude(ip, value);
-				} else if (message.contains("airspeed")) {
+				} else if (message.contains(AIRSPEED)) {
+				} else if (message.contains(FUEL_QUANTITY)) {
+					System.out.println(new String(value));
 				}
 			}
 		}
@@ -369,7 +379,7 @@ public class MainXPlaneMap implements UDPMessageListenerXPlaneDataInput, XPlaneM
 		switch (message.getIndex()) {
 			case DataSetXPlane.LAT_LON_ALTITUDE: {
 				this.planeList.updateLatitudeLongitude(ip, message);
-				if (!this.receivedDataXPlanePlugin.contains(ALTITUDE))
+				if (!this.receivedFromPlugin.contains(ALTITUDE))
 					this.planeList.updateAltitude(ip, message);
 				break;
 			}
