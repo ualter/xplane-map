@@ -6,7 +6,6 @@ import java.util.HashMap;
 import org.json.simple.JSONObject;
 
 import br.ujr.xplane.comm.message.DATAMessage;
-import br.ujr.xplane.comm.message.DataSetXPlane;
 
 public class PlanesList {
 	private HashMap<String, Float>	latMap	= new HashMap<String, Float>();
@@ -91,29 +90,22 @@ public class PlanesList {
 		return planes;
 	}
 
-	public void updateDataXPlaneDataInput(InetAddress ip, DATAMessage message) {
-		switch (message.getIndex()) {
-			case DataSetXPlane.LAT_LON_ALTITUDE: {
-				this.updatePosition(ip, message);
-				break;
-			}
-			case DataSetXPlane.CLIMB_STATUS: {
-				this.updateClimbStatus(ip, message);
-				break;
-			}
-			default:
-				break;
-		}
-	}
 	public void updateClimbStatus(InetAddress ip, DATAMessage message) {
 		this.hSpeed.put(ip.toString(), new Float(message.getRxData()[0]));
 		this.vSpeed.put(ip.toString(), new Float(message.getRxData()[1]));
 	}
 	
-	private void updatePosition(InetAddress ip, DATAMessage message) {
+	public void updateLatitudeLongitude(InetAddress ip, DATAMessage message) {
 		this.latMap.put(ip.toString(), new Float(message.getRxData()[0]));
 		this.lonMap.put(ip.toString(), new Float(message.getRxData()[1]));
+	}
+	
+	public void updateAltitude(InetAddress ip, DATAMessage message) {
 		this.altMap.put(ip.toString(), new Float(message.getRxData()[2]));
+	}
+	public void updateAltitude(InetAddress ip, String altitude) {
+		// Converter altitude para Float
+		//this.altMap.put(ip.toString(), new Float(message.getRxData()[2]));
 	}
 
 }

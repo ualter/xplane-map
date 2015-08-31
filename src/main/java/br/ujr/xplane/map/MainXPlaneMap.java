@@ -12,7 +12,9 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URLDecoder;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -29,6 +31,7 @@ import br.ujr.xplane.comm.XPlaneMapPluginListener;
 import br.ujr.xplane.comm.message.DATAMessage;
 import br.ujr.xplane.comm.message.DATAREFMessage;
 import br.ujr.xplane.comm.message.DSELMessage;
+import br.ujr.xplane.comm.message.DataSetXPlane;
 import br.ujr.xplane.comm.message.PAUSMessage;
 import br.ujr.xplane.comm.message.UDPMessage;
 import br.ujr.xplane.map.fmsdata.Airport;
@@ -41,7 +44,6 @@ import br.ujr.xplane.map.fmsdata.flightplan.FlightPlanLoadMessages;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
-
 
 public class MainXPlaneMap implements UDPMessageListenerXPlaneDataInput, XPlaneMapPluginListener {
 
@@ -56,7 +58,7 @@ public class MainXPlaneMap implements UDPMessageListenerXPlaneDataInput, XPlaneM
 	private int							pluginPort					= 8881;
 	private int							portSender					= 49000;
 	private int							portReceiver				= 49003;
-	private Map<String, Boolean>		receivedDataXPlanePlugin	= new HashMap<String, Boolean>();
+	private Set<String>					receivedDataXPlanePlugin	= new HashSet<String>();
 
 	public static void main(String[] args) {
 
@@ -333,17 +335,17 @@ public class MainXPlaneMap implements UDPMessageListenerXPlaneDataInput, XPlaneM
 			sb.append("]");
 			logger.debug(sb.toString());
 		}
-
-		this.planeList.updateDataXPlaneDataInput(IPAddress, message);
+		this.updateDataXPlaneDataInput(IPAddress, message);
 	}
 
-	public void listenToXPlaneMapPlugin(InetAddress IPAddress, String[] messages) {
+	public void listenToXPlaneMapPlugin(InetAddress ip, String[] messages) {
 		String label, value;
 		for (String message : messages) {
+
 			System.out.println(message);
 
 			String[] messageParts = message.trim().split("=");
-			if (messageParts.length > 2) {
+			if (messageParts.length > 1) {
 				label = messageParts[0];
 				value = messageParts[1];
 
@@ -354,11 +356,29 @@ public class MainXPlaneMap implements UDPMessageListenerXPlaneDataInput, XPlaneM
 				} else if (message.contains("nav1FreqHz")) {
 				} else if (message.contains("nav2FreqHz")) {
 				} else if (message.contains(ALTITUDE)) {
-					//this.receivedDataXPlanePlugin(ALTITUDE)
-
+					if (!this.receivedDataXPlanePlugin.contains(ALTITUDE))
+						this.receivedDataXPlanePlugin.add(ALTITUDE);
+					this.planeList.updateAltitude(ip, value);
 				} else if (message.contains("airspeed")) {
 				}
 			}
+		}
+	}
+
+	private void updateDataXPlaneDataInput(InetAddress ip, DATAMessage message) {
+		switch (message.getIndex()) {
+			case DataSetXPlane.LAT_LON_ALTITUDE: {
+				this.planeList.updateLatitudeLongitude(ip, message);
+				if (!this.receivedDataXPlanePlugin.contains(ALTITUDE))
+					this.planeList.updateAltitude(ip, message);
+				break;
+			}
+			case DataSetXPlane.CLIMB_STATUS: {
+				this.planeList.updateClimbStatus(ip, message);
+				break;
+			}
+			default:
+				break;
 		}
 	}
 
