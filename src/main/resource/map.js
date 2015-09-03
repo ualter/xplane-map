@@ -590,7 +590,9 @@ function updatePosition() {
 							info : new google.maps.InfoWindow(),
 							color : color,
 							vSpeed : data[ip].vSpeed,
-							hSpeed : data[ip].hSpeed
+							airSpeed : data[ip].airSpeed,
+							gSpeed : data[ip].gSpeed,
+							heading : data[ip].bearing
 						};
 						planeList[ip].marker.setMap(map);
 						planeList[ip].marker.ip = ip; 
@@ -612,26 +614,23 @@ function updatePosition() {
 					}
 					newLat = data[ip].lat;
 					newLon = data[ip].lon;
-					planeList[ip].alt = data[ip].alt;
-					planeList[ip].vSpeed = data[ip].vSpeed;
-					planeList[ip].hSpeed = data[ip].hSpeed;
+					planeList[ip].alt      = data[ip].alt;
+					planeList[ip].vSpeed   = data[ip].vSpeed;
+					planeList[ip].airSpeed = data[ip].airSpeed;
+					planeList[ip].heading  = data[ip].bearing;
 					var newPoint = new google.maps.LatLng(newLat,newLon);
 					planeList[ip].marker.setPosition(newPoint);
-					hdg = bearing(planeList[ip].lon, planeList[ip].lat,newLon, newLat);
 					var icon = planeList[ip].marker.getIcon();
-					icon.rotation = hdg;
+					icon.rotation = planeList[ip].heading;
+					console.log("bearing=" + planeList[ip].heading + ", " + data[ip].bearing);
 					planeList[ip].marker.setIcon(icon);
-					// speed
-					spd = distance(planeList[ip].lon,planeList[ip].lat, newLon, newLat)	/ (period / 1000) * 3600 / 1.852;
 					// add new point to line
 					planeList[ip].trace.getPath().push(newPoint);
-					
 					var airplaneLabel =  planeList[ip].name;
 					if ( airplaneLabel == '127.0.0.1' ) {
 						 airplaneLabel = 'YOU';
 					}
-					//var hdgAirplane = Number(Math.floor(((hdg + 360) % 360))) + 20;
-					var hdgAirplane = Number(Math.floor(((hdg + 360) % 360)));
+					var hdgAirplane = Number(Math.floor(((planeList[ip].heading + 360) % 360))) + 22;
 					var infoContent = "<div id='iw_content'>";
 					infoContent += "<div style='margin: 0; width: 210px;'>";
 					infoContent += "<table border=0 cellspacing='0' cellpadding='0' width='100%'>";
@@ -653,8 +652,8 @@ function updatePosition() {
 					infoContent += " </td></tr>";
 					
 					infoContent += " <tr><td>";
-					infoContent += " GS <span class='planeDataInfo'>" + spd.toFixed() + "</span>&nbsp;kts" + " / " +
-					               " AirSpeed <span class='planeDataInfo'>" + numeral(planeList[ip].hSpeed).format('0,0') + "</span>&nbsp;kts"
+					infoContent += " GS <span class='planeDataInfo'>" + planeList[ip].gSpeed.toFixed() + "</span>&nbsp;kts" + " / " +
+					               " AirSpeed <span class='planeDataInfo'>" + numeral(planeList[ip].airSpeed).format('0,0') + "</span>&nbsp;kts"
 					infoContent += " </td></tr>";
 					
 					infoContent += " <tr><td>";
@@ -675,8 +674,8 @@ function updatePosition() {
 					planeList[ip].info.setContent(infoContent);
 					planeList[ip].lon = newLon;
 					planeList[ip].lat = newLat;
-					planeList[ip].hdg = hdg;
-					planeList[ip].spd = spd;
+					planeList[ip].hdg = planeList[ip].heading;
+					planeList[ip].spd = planeList[ip].gSpeed;
 				}
 				// move map if checkbox checked
 				if ( chaseAirplane ) {

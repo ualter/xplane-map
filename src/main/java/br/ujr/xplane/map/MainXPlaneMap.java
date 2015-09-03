@@ -1,5 +1,8 @@
 package br.ujr.xplane.map;
 
+import static br.ujr.xplane.comm.XPlaneMapPluginData.*;
+import static br.ujr.xplane.comm.XPlaneMapPluginData.LATITUDE;
+import static br.ujr.xplane.comm.XPlaneMapPluginData.LONGITUDE;
 import static br.ujr.xplane.comm.XPlaneMapPluginData.FUEL_QUANTITY;
 import static br.ujr.xplane.comm.XPlaneMapPluginData.AIRSPEED;
 import static br.ujr.xplane.comm.XPlaneMapPluginData.DESTINATION;
@@ -67,6 +70,7 @@ public class MainXPlaneMap implements UDPMessageListenerXPlaneDataInput, XPlaneM
 	private int							portSender			= 49000;
 	private int							portReceiver		= 49003;
 	private Set<String>					receivedFromPlugin	= new HashSet<String>();
+	private String						valueBuffer;
 
 	public static void main(String[] args) {
 
@@ -350,14 +354,44 @@ public class MainXPlaneMap implements UDPMessageListenerXPlaneDataInput, XPlaneM
 		String label, value;
 		for (String message : messages) {
 
-			System.out.println(message);
+			//System.out.println(message);
 
 			String[] messageParts = message.trim().split("=");
 			if (messageParts.length > 1) {
 				label = messageParts[0];
 				value = messageParts[1];
 
+				/**
+				 * Próximo passo, converter todos os valores em String recebidos
+				 * para os seus respectivos valores válidos, Exemplo:
+				 * nav1FreqHz=10990 para 109.90
+				 * 
+				 * Atualizar o PlaneList de acordo (criando o atributo
+				 * necessário quando não existir) Caso já exista: implementar a
+				 * opção de atualizar via Plugin e parar via Data Input conforme
+				 * já implementado para Altitude
+				 * 
+				 * Valores recebidos:
+				 * 
+				 * destination=SBSP-Congonhas (Airport) gamePaused=0
+				 * barometer=29.92 compassHeading=346.444 nav1FreqHz=10990
+				 * nav2FreqHz=11420 altitude=2579.36 airspeed=1.35088
+				 * fuelquantity=278.725 278.725 apurunning=1 com1FreqHz=12190
+				 * com2FreqHz=12880 com1FreqHzStdby=12992 com2FreqHzStdby=11800
+				 * gpsDMEDistM=3062.12 gpsDMETimeSecs=1.#INF nav1DMEDistNm=0
+				 * nav1DMEDistMin=0 nav2DMEDistNm=0 nav2DMEDistMin=0
+				 * outsideTempC=17.9218 vsFpm=-5.99927e-005
+				 * groundspeed=3.28481e-005 true_airspeed=2.70714
+				 * latitude=-23.6316 longitude=-46.6506 weightTotalFuel=1114.9
+				 * autopilotMode=0 autopilotAltitude=4500 autopilotVS=0
+				 * autopilotAirSpeed=145 autopilotHeading=251.412
+				 */
+
 				if (message.contains(DESTINATION)) {
+				} else if (message.contains(LATITUDE)) {
+					this.valueBuffer = value;
+				} else if (message.contains(LONGITUDE)) {
+					this.planeList.updateLatitudeLongitude(ip, this.valueBuffer, value);
 				} else if (message.contains(GAME_PAUSED)) {
 				} else if (message.contains(BAROMETER)) {
 				} else if (message.contains(COMPASS_HEADING)) {
@@ -367,9 +401,13 @@ public class MainXPlaneMap implements UDPMessageListenerXPlaneDataInput, XPlaneM
 					if (!this.receivedFromPlugin.contains(ALTITUDE))
 						this.receivedFromPlugin.add(ALTITUDE);
 					this.planeList.updateAltitude(ip, value);
-				} else if (message.contains(AIRSPEED)) {
+				} else if (message.contains(AIRSPEED) && !message.contains("true") ) {
+					this.planeList.updateAirspeed(ip, value);
 				} else if (message.contains(FUEL_QUANTITY)) {
-					System.out.println(new String(value));
+				} else if (message.contains(VERTICAL_SPEED)) {
+					this.planeList.updateVerticalSpeed(ip, value);
+				} else if (message.contains(GROUND_SPEED)) {
+					this.planeList.updateGroundSpeed(ip, value);
 				}
 			}
 		}
@@ -378,13 +416,13 @@ public class MainXPlaneMap implements UDPMessageListenerXPlaneDataInput, XPlaneM
 	private void updateDataXPlaneDataInput(InetAddress ip, DATAMessage message) {
 		switch (message.getIndex()) {
 			case DataSetXPlane.LAT_LON_ALTITUDE: {
-				this.planeList.updateLatitudeLongitude(ip, message);
-				if (!this.receivedFromPlugin.contains(ALTITUDE))
-					this.planeList.updateAltitude(ip, message);
+				// this.planeList.updateLatitudeLongitude(ip, message);
+				//if (!this.receivedFromPlugin.contains(ALTITUDE))
+				//	this.planeList.updateAltitude(ip, message);
 				break;
 			}
 			case DataSetXPlane.CLIMB_STATUS: {
-				this.planeList.updateClimbStatus(ip, message);
+				//this.planeList.updateClimbStatus(ip, message);
 				break;
 			}
 			default:
