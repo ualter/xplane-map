@@ -592,7 +592,19 @@ function updatePosition() {
 							vSpeed : data[ip].vSpeed,
 							airSpeed : data[ip].airSpeed,
 							gSpeed : data[ip].gSpeed,
-							heading : data[ip].bearing
+							heading : data[ip].bearing,
+							dest : data[ip].dest,
+							gpsDistNm : data[ip].gpsDistNm,
+							gpsDistTime : data[ip].gpsDistTime,
+							nav1 : data[ip].nav1Freq,
+							nav2 : data[ip].nav2Freq,
+							barometer : data[ip].barometer,
+							fuelQuantity : data[ip].fuelQuantity,
+							fuelQuantity : data[ip].fuelQuantity,
+							outsideTemp : data[ip].outsideTemp,
+							com1 : data[ip].com1Freq,
+							com2 : data[ip].com2Freq,
+							compassHeading : data[ip].compassHeading
 						};
 						planeList[ip].marker.setMap(map);
 						planeList[ip].marker.ip = ip; 
@@ -614,15 +626,26 @@ function updatePosition() {
 					}
 					newLat = data[ip].lat;
 					newLon = data[ip].lon;
-					planeList[ip].alt      = data[ip].alt;
-					planeList[ip].vSpeed   = data[ip].vSpeed;
-					planeList[ip].airSpeed = data[ip].airSpeed;
-					planeList[ip].heading  = data[ip].bearing;
+					planeList[ip].alt            = data[ip].alt;
+					planeList[ip].vSpeed         = data[ip].vSpeed;
+					planeList[ip].airSpeed       = data[ip].airSpeed;
+					planeList[ip].heading        = data[ip].bearing;
+					planeList[ip].dest           = data[ip].dest;
+					planeList[ip].gpsDistNm      = data[ip].gpsDistNm;
+					planeList[ip].gpsDistTime    = data[ip].gpsDistTime;
+					planeList[ip].nav1           = data[ip].nav1Freq;
+					planeList[ip].nav2           = data[ip].nav2Freq;
+					planeList[ip].barometer      = data[ip].barometer;
+					planeList[ip].fuelQuantity   = data[ip].fuelQuantity;
+					planeList[ip].outsideTemp    = data[ip].outsideTemp;
+					planeList[ip].com1           = data[ip].com1Freq;
+					planeList[ip].com2           = data[ip].com2Freq;
+					planeList[ip].compassHeading = data[ip].compassHeading;
+					
 					var newPoint = new google.maps.LatLng(newLat,newLon);
 					planeList[ip].marker.setPosition(newPoint);
 					var icon = planeList[ip].marker.getIcon();
 					icon.rotation = planeList[ip].heading;
-					console.log("bearing=" + planeList[ip].heading + ", " + data[ip].bearing);
 					planeList[ip].marker.setIcon(icon);
 					// add new point to line
 					planeList[ip].trace.getPath().push(newPoint);
@@ -630,42 +653,70 @@ function updatePosition() {
 					if ( airplaneLabel == '127.0.0.1' ) {
 						 airplaneLabel = 'YOU';
 					}
-					var hdgAirplane = Number(Math.floor(((planeList[ip].heading + 360) % 360))) + 22;
+					//var hdgAirplane = Number(Math.floor(((planeList[ip].heading + 360) % 360))) + 22;
+					var hdgAirplane = planeList[ip].compassHeading;
 					var infoContent = "<div id='iw_content'>";
-					infoContent += "<div style='margin: 0; width: 210px;'>";
+					infoContent += "<div style='margin: 0; width: 500px;'>";
 					infoContent += "<table border=0 cellspacing='0' cellpadding='0' width='100%'>";
 					
 					infoContent += " <tr><td>";
 					infoContent += "  <table border=0 cellspacing='0' cellpadding='0' width='100%'>";
-					infoContent += "   <tr><td>";
+					infoContent += "   <tr><td style='height:30px;'>";
 					infoContent += "   <b>" + airplaneLabel + "</b>";
 					infoContent += "   </td></tr>";
 					infoContent += "   <tr><td>";
-					infoContent += "    <b><hr></b>";
 					infoContent += "   </td></tr>";
 					infoContent += "  </table>";
 					infoContent += " </td></tr>";
 					
-					infoContent += " <tr><td><span class='planeDataInfo'>";
-					infoContent += numeral(planeList[ip].alt.toFixed()).format('0,0') + "</span>&nbsp;ft MSL / " 
-					            + "<span class='planeDataInfo'>" + hdgAirplane + "&deg;</span>";
-					infoContent += " </td></tr>";
+					var backColor = 'lightgray';
 					
 					infoContent += " <tr><td>";
-					infoContent += " GS <span class='planeDataInfo'>" + planeList[ip].gSpeed.toFixed() + "</span>&nbsp;kts" + " / " +
-					               " AirSpeed <span class='planeDataInfo'>" + numeral(planeList[ip].airSpeed).format('0,0') + "</span>&nbsp;kts"
-					infoContent += " </td></tr>";
+					infoContent += " <table style='border:solid 1px darkgray;font-weight:bold;' cellspacing='0' cellpadding='2' width='100%'>";
+					infoContent += " <tr style='background:" + backColor + ";'>";
+					infoContent += " <td width='80px'>Destination:</td><td colspan='5'><span class='planeDataInfo'>" + planeList[ip].dest + "</span></td>"; 
+					infoContent += " </tr>";
 					
-					infoContent += " <tr><td>";
+					infoContent += " <tr>";
+					infoContent += " <td>Distance:</td><td><span class='planeDataInfo'>" + planeList[ip].gpsDistNm + "</span>&nbsp;nm</td>"; 
+					infoContent += " <td width='60px'>ETE:</td><td><span class='planeDataInfo'>" + planeList[ip].gpsDistTime + "</span>&nbsp;</td>";
+					infoContent += " </tr>";
+					
+					infoContent += "<tr style='background:" + backColor + ";'><td> Altitude: </td><td><span class='planeDataInfo'>";
+					infoContent += numeral(planeList[ip].alt.toFixed()).format('0,0') + "</span>&nbsp;ft MSL&nbsp;&nbsp;</td>"
+					            + "<td>Heading:</td><td><span class='planeDataInfo'>" + hdgAirplane + "&deg;</span></td>";
+					infoContent += "</tr>";
+					
+					infoContent += "<tr><td>";
+					infoContent += " AirSpeed: </td><td><span class='planeDataInfo'>" + numeral(planeList[ip].airSpeed).format('0,0') + "</span>&nbsp;kts</td>"; 
 					if ( planeList[ip].vSpeed > -1 ) {
-						infoContent += " VS <span class='planeDataInfo'>";
+						infoContent += " <td>VS:</td><td><span class='planeDataInfo'>";
 					} else {
-						infoContent += " VS <span class='planeDataInfoRed'>";
-					}		
-					infoContent += numeral(planeList[ip].vSpeed).format('0,0') + "</span>&nbsp;fpm";
-					infoContent += " </td></tr>";
+						infoContent += " <td>VS:</td><td><span class='planeDataInfoRed'>";
+					}
+					infoContent += numeral(planeList[ip].vSpeed).format('0,0') + "</span>&nbsp;fpm&nbsp;&nbsp;</td>";
+					infoContent += " </tr>";
 					
-					infoContent += "";
+					infoContent += " <tr style='background:" + backColor + ";'>";
+					infoContent += " <td>Nav1:</td><td><span class='planeDataInfo'>" + planeList[ip].nav1 + "</span>&nbsp;hz</td>"; 
+					infoContent += " <td>Com1:</td><td><span class='planeDataInfo'>" + planeList[ip].com1 + "</span>&nbsp;hz</td>";
+					infoContent += " </tr><tr>";
+					
+					infoContent += " <td>Nav2:</td><td><span class='planeDataInfo'>" + planeList[ip].nav2 + "</span>&nbsp;hz</td>";
+					infoContent += " <td>Com2:</td><td><span class='planeDataInfo'>" + planeList[ip].com2 + "</span>&nbsp;hz</td>";
+					infoContent += " </tr>";
+					
+					infoContent += " <tr style='background:" + backColor + ";'>";
+					infoContent += " <td>Barometer:</td><td><span class='planeDataInfo'>" + planeList[ip].barometer + "</span></td>";
+					infoContent += " <td>Fuel:</td><td><span class='planeDataInfo'>" + planeList[ip].fuelQuantity + "</span></td>"; 
+					infoContent += " </tr><tr>";
+					
+					infoContent += " <td>OAT:</td><td><span class='planeDataInfo'>" + planeList[ip].outsideTemp + "</span>&deg;&nbsp</td>";
+					infoContent += " <td>GS:</td><td><span class='planeDataInfo'>" + planeList[ip].gSpeed.toFixed() + "</span>&nbsp;kts</td>";
+					infoContent += " </tr>";
+				
+					infoContent += " </table>";
+					infoContent += " </td></tr>";
 					infoContent += "</table>";
 					infoContent += "</div>";
 					infoContent += "</div>";

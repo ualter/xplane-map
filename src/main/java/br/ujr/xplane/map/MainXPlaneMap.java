@@ -361,42 +361,22 @@ public class MainXPlaneMap implements UDPMessageListenerXPlaneDataInput, XPlaneM
 				label = messageParts[0];
 				value = messageParts[1];
 
-				/**
-				 * Próximo passo, converter todos os valores em String recebidos
-				 * para os seus respectivos valores válidos, Exemplo:
-				 * nav1FreqHz=10990 para 109.90
-				 * 
-				 * Atualizar o PlaneList de acordo (criando o atributo
-				 * necessário quando não existir) Caso já exista: implementar a
-				 * opção de atualizar via Plugin e parar via Data Input conforme
-				 * já implementado para Altitude
-				 * 
-				 * Valores recebidos:
-				 * 
-				 * destination=SBSP-Congonhas (Airport) gamePaused=0
-				 * barometer=29.92 compassHeading=346.444 nav1FreqHz=10990
-				 * nav2FreqHz=11420 altitude=2579.36 airspeed=1.35088
-				 * fuelquantity=278.725 278.725 apurunning=1 com1FreqHz=12190
-				 * com2FreqHz=12880 com1FreqHzStdby=12992 com2FreqHzStdby=11800
-				 * gpsDMEDistM=3062.12 gpsDMETimeSecs=1.#INF nav1DMEDistNm=0
-				 * nav1DMEDistMin=0 nav2DMEDistNm=0 nav2DMEDistMin=0
-				 * outsideTempC=17.9218 vsFpm=-5.99927e-005
-				 * groundspeed=3.28481e-005 true_airspeed=2.70714
-				 * latitude=-23.6316 longitude=-46.6506 weightTotalFuel=1114.9
-				 * autopilotMode=0 autopilotAltitude=4500 autopilotVS=0
-				 * autopilotAirSpeed=145 autopilotHeading=251.412
-				 */
-
 				if (message.contains(DESTINATION)) {
+					this.planeList.updateDestination(ip, value);
 				} else if (message.contains(LATITUDE)) {
 					this.valueBuffer = value;
 				} else if (message.contains(LONGITUDE)) {
 					this.planeList.updateLatitudeLongitude(ip, this.valueBuffer, value);
 				} else if (message.contains(GAME_PAUSED)) {
+					this.planeList.updatePause(ip, value);
 				} else if (message.contains(BAROMETER)) {
+					this.planeList.updateBarometer(ip, value);
 				} else if (message.contains(COMPASS_HEADING)) {
+					this.planeList.updateCompassHeading(ip, value);
 				} else if (message.contains(NAV1_FREQUENCY)) {
+					this.planeList.updateNav1Frequency(ip, value);
 				} else if (message.contains(NAV2_FREQUENCY)) {
+					this.planeList.updateNav2Frequency(ip, value);
 				} else if (message.contains(ALTITUDE)) {
 					if (!this.receivedFromPlugin.contains(ALTITUDE))
 						this.receivedFromPlugin.add(ALTITUDE);
@@ -404,15 +384,31 @@ public class MainXPlaneMap implements UDPMessageListenerXPlaneDataInput, XPlaneM
 				} else if (message.contains(AIRSPEED) && !message.contains("true") ) {
 					this.planeList.updateAirspeed(ip, value);
 				} else if (message.contains(FUEL_QUANTITY)) {
+					this.planeList.updateFuelQuantity(ip, value);
 				} else if (message.contains(VERTICAL_SPEED)) {
 					this.planeList.updateVerticalSpeed(ip, value);
 				} else if (message.contains(GROUND_SPEED)) {
 					this.planeList.updateGroundSpeed(ip, value);
+				} else if (message.contains(GPS_DISTANCE_METERS)) {
+					this.planeList.updateGpsDistanceMeters(ip, value); 
+				} else if (message.contains(GPS_DISTANCE_SECONDS)) {
+					this.planeList.updateGpsDistanceSeconds(ip, value);
+				} else if (message.contains(OUTSIDE_TEMPERATURE_CELSIUS)) {
+					this.planeList.updateOutsideTemparature(ip, value);
+				} else if (message.contains(WEIGHT_TOTAL_FUEL)) {
+					//
+				} else if (message.contains(COM1_FREQUENCY)) {
+					this.planeList.updateCom1Freq(ip, value);
+				} else if (message.contains(COM2_FREQUENCY)) {
+					this.planeList.updateCom2Freq(ip, value);
 				}
 			}
 		}
 	}
 
+	/**
+	 * Disabled update via Net Connection 
+	 */
 	private void updateDataXPlaneDataInput(InetAddress ip, DATAMessage message) {
 		switch (message.getIndex()) {
 			case DataSetXPlane.LAT_LON_ALTITUDE: {
