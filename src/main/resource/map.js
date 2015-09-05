@@ -1,5 +1,4 @@
-const
-period = 1000; // time between refreshes in ms
+const period = 1000; // time between refreshes in ms
 
 var posClient = new google.maps.LatLng(-23.62611, -46.656387)
 if (navigator.geolocation) {
@@ -97,8 +96,11 @@ var navMap;
 var flightPlan = {};
 var flightPath; // an object google.maps.Polyline - representing the Flight Plan
 var markers = [];
+var routeLabelsOffSet = [];
+var markersLabelRoute = [];
+var markersWaypoint   = [];
 var elInfoBoxPlane;
-var chaseAirplane = true;
+var chaseAirplane = false;
 
 $.ajaxSetup({
 	cache : false
@@ -121,7 +123,33 @@ function initialize() {
 			$.getJSON("pause").done(function(data){}).error(function() {showError('Not able to Pause X-Plane.')});
 		}
 	});
-
+	
+	 map.addListener('zoom_changed', function() {
+	    window.setTimeout(function() {
+	       for (var i = 0; i < routeLabelsOffSet.length; i++) {
+	    	   var distLabelRoute = 24000;
+	    	   if ( map.getZoom() >= 16 ) {
+	    		   distLabelRoute = 50;
+	    	   } else
+	    	   if ( map.getZoom() >= 15 ) {
+	    		   distLabelRoute = 500;
+	    	   } else
+	    	   if ( map.getZoom() >= 12 ) {
+	    		   distLabelRoute = 5000;
+	    	   } else
+	    	   if ( map.getZoom() >= 10 ) {
+	    		   distLabelRoute = 12000;
+	    	   } else
+	    	   if ( map.getZoom() >= 8 ) {
+	    		   distLabelRoute = 16000;
+	    	   }
+	    	   var hdgLabel = google.maps.geometry.spherical.computeHeading(routeLabelsOffSet[i].latlng, routeLabelsOffSet[i].nextLatLng); 
+	    	   var offset = google.maps.geometry.spherical.computeOffset(routeLabelsOffSet[i].latlng, distLabelRoute, hdgLabel, 6371000);
+	    	   markersLabelRoute[i].position = offset; 
+    	   }
+	    },1);
+	});
+	 
 	updatePosition();
 	setInterval(updatePosition, period);
 	setInterval(checkFlightPlanBoxAndLoad, 2000);
@@ -311,9 +339,10 @@ function loadFlightPlan() {
 			numeral((totalDistance * 1.852)).format('0,0') + 'km'
 	        );
 	        
-	var panFlightPlan = new google.maps.LatLngBounds(departureLatLng, destinationLatLng);
+	var panFlightPlan = new google.maps.LatLngBounds(destinationLatLng, departureLatLng);
 	map.fitBounds(panFlightPlan);
-	map.panToBounds(panFlightPlan);
+	//map.panToBounds(panFlightPlan);
+	//map.setZoom(10);
 }
 
 function saveMark(m) {
@@ -323,16 +352,24 @@ function clearMarkers() {
   for (var i = 0; i < markers.length; i++) {
     markers[i].setMap(null);
   }
+  routeLabelsOffSet = [];
+  markersLabelRoute = [];
+  markersWaypoint   = [];
 }
 
 function markLabelRoute(labelRoute) {
 	//var distLabel = labelRoute.distanceNM * 1.852; // convert nm to meters
 	//var hdgLabel = labelRoute.bearingDegree - 22;
-	var distLabel = 24000; 
+	//var distLabel = 24000; 
+	routeLabelsOffSet.push(
+		{
+			latlng : labelRoute.latlng,
+			nextLatLng : labelRoute.nextLatlng
+		}
+	);
+	var distLabelRoute = 12000;
 	var hdgLabel = google.maps.geometry.spherical.computeHeading(labelRoute.latlng, labelRoute.nextLatlng); 
-	var offset = google.maps.geometry.spherical.computeOffset(labelRoute.latlng, distLabel, hdgLabel, 6371000);
-	//console.log("from " + labelRoute.latlng + ", to " + offset + " in " + distLabel + "nm");
-	//var angleRotate = (labelRoute.bearing - 53) * -1;
+	var offset = google.maps.geometry.spherical.computeOffset(labelRoute.latlng, distLabelRoute, hdgLabel, 6371000);
 	var angleRotate = hdgLabel - 90;
 	if ( angleRotate > -270 && angleRotate < -90 ) {
 		 angleRotate = angleRotate - 180;
@@ -399,6 +436,7 @@ function markLabelRoute(labelRoute) {
 	
 	markerLabelRoute.setMap(map);
 	saveMark(markerLabelRoute);
+	markersLabelRoute.push(markerLabelRoute);
 }
 
 function markAirport(airport,type) {
@@ -530,6 +568,7 @@ function markWaypoint(waypoint) {
 	});
 	markerWaypoint.setMap(map);
 	saveMark(markerWaypoint);
+	markersWaypoint.push(markerWaypoint);
 }
 
 function changeColorInfoBox(el,color) {
@@ -832,6 +871,32 @@ function showNavaids() {
 	$('#navaids-button').html('Hide navaids (N)').unbind('click').click(
 			hideNavaids);
 	navMap.setOpacity(1);
+}
+
+var visibleLabelRoute = true;
+function toogleLabelRoute() {
+	visibleLabelRoute = !visibleLabelRoute;
+	for (var i = 0; i < markersLabelRoute.length; i++) {
+		 markersLabelRoute[i].setVisible(visibleLabelRoute);
+	}
+	if ( visibleLabelRoute ) {
+		$('#labelRoute-button').removeClass("up").addClass("down");
+	} else {
+		$('#labelRoute-button').removeClass("down").addClass("up");
+	}
+}
+
+var visibleWaypoint = true;
+function toogleLabelWaypoint() {
+	visibleWaypoint = !visibleWaypoint;
+	for (var i = 0; i < markersWaypoint.length; i++) {
+		markersWaypoint[i].setVisible(visibleWaypoint);
+	}
+	if ( visibleWaypoint ) {
+		$('#labelWaypoint-button').removeClass("up").addClass("down");
+	} else {
+		$('#labelWaypoint-button').removeClass("down").addClass("up");
+	}
 }
 
 // ready when you are!

@@ -18,6 +18,8 @@
 	<div id="plane-panel">
 		<div id="followThePlane-button" class="down">Chase Airplane</div>
 	</div>
+	<div id="labelRoute-button">Route label</div>
+	<div id="labelWaypoint-button">Waypoint label</div>
 	<div id="flightplan-info">
 	   <table>
 	       <tr>
@@ -43,10 +45,8 @@
 	<div id="flightplan-help"><p align='justify'>Fill the route above with all the waypoints separated by spaces. This waypoints might be VOR, FIX or Airports.</p></div>
 	<div id="panel-fp">
 	    <div>
-			<textarea id="boxFlightPlan" rows="6" cols="64" placeholder="Enter your fligth plan...">SBSP SAT LODOG XOKIX SBRJ</textarea>
-			<!-- <textarea id="boxFlightPlan" rows="6" cols="64" placeholder="Enter your fligth plan...">SBSP SAT SCP LODOG XOKIX VUREP SBRJ</textarea> -->
-			<!-- <textarea id="boxFlightPlan" rows="6" cols="64" placeholder="Enter your fligth plan...">KSEA EDDG</textarea> -->
-			<!-- <textarea id="boxFlightPlan" rows="6" cols="64" placeholder="Enter your fligth plan...">KSEA LODOG SBRJ</textarea> -->
+			<!-- <textarea id="boxFlightPlan" rows="6" cols="64" placeholder="Enter your fligth plan...">SBSP SAT LODOG XOKIX SBRJ</textarea> -->
+			<textarea id="boxFlightPlan" rows="6" cols="64" placeholder="Enter your fligth plan...">SBRJ CXI UBNEK EPGIP ESORU UGPOP EKIDI VULET VUSMA IB SBSP</textarea>
 		</div>
 		<div id='flightplan-loading'>
 		  <table cellspacing='0' cellpadding='0' border=0>
@@ -94,6 +94,19 @@
 		$('#navaids-button').click(showNavaids);
 		$('#flightplan-button').click(toggleFlightPanel);
 		$('#followThePlane-button').click(toggleChaseAirplane);
-		</script>
+		$('#labelRoute-button').click(toogleLabelRoute);
+		$('#labelWaypoint-button').click(toogleLabelWaypoint);
+		
+		if ( $('textarea#boxFlightPlan').val() != '' ) {
+			window.setTimeout(function() {
+				toggleFlightPanel();
+			},2000);
+			window.setTimeout(function() {
+				toggleFlightPanel();
+			},2500);
+		}
+		
+	</script>
 </body>
 </html>
+
