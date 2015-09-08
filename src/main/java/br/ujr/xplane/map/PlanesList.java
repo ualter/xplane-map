@@ -392,15 +392,23 @@ public class PlanesList {
 	}
 
 	public void updateNav2Frequency(InetAddress ip, String value) {
-		StringBuffer sb = new StringBuffer(value);
-		sb.insert(value.length() - 2, ".");
-		this.nav2Freq.put(ip.toString(), sb.toString());
+		if (value.length() >= 5) {
+			StringBuffer sb = new StringBuffer(value);
+			sb.insert(value.length() - 2, ".");
+			this.nav2Freq.put(ip.toString(), sb.toString());
+		} else {
+			this.nav2Freq.put(ip.toString(), value);
+		}
 	}
 
 	public void updateNav1Frequency(InetAddress ip, String value) {
-		StringBuffer sb = new StringBuffer(value);
-		sb.insert(value.length() - 2, ".");
-		this.nav1Freq.put(ip.toString(), sb.toString());
+		if (value.length() >= 5) {
+			StringBuffer sb = new StringBuffer(value);
+			sb.insert(value.length() - 2, ".");
+			this.nav1Freq.put(ip.toString(), sb.toString());
+		} else {
+			this.nav1Freq.put(ip.toString(), value);
+		}
 	}
 
 	public void updatePause(InetAddress ip, String value) {
@@ -421,14 +429,22 @@ public class PlanesList {
 	}
 
 	public void updateCom1Freq(InetAddress ip, String value) {
-		StringBuffer sb = new StringBuffer(value);
-		sb.insert(value.length() - 2, ".");
-		this.com1Freq.put(ip.toString(), sb.toString());
+		if (value.length() >= 5) {
+			StringBuffer sb = new StringBuffer(value);
+			sb.insert(value.length() - 2, ".");
+			this.com1Freq.put(ip.toString(), sb.toString());
+		} else {
+			this.com1Freq.put(ip.toString(), value);
+		}
 	}
 
 	public void updateCom2Freq(InetAddress ip, String value) {
-		StringBuffer sb = new StringBuffer(value);
-		sb.insert(value.length() - 2, ".");
-		this.com2Freq.put(ip.toString(), sb.toString());
+		if (value.length() >= 5) {
+			StringBuffer sb = new StringBuffer(value);
+			sb.insert(value.length() - 2, ".");
+			this.com2Freq.put(ip.toString(), sb.toString());
+		} else {
+			this.com2Freq.put(ip.toString(), value);
+		}
 	}
 }

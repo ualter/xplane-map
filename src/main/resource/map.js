@@ -339,7 +339,7 @@ function loadFlightPlan() {
 			numeral((totalDistance * 1.852)).format('0,0') + 'km'
 	        );
 	        
-	var panFlightPlan = new google.maps.LatLngBounds(destinationLatLng, departureLatLng);
+	var panFlightPlan = new google.maps.LatLngBounds(departureLatLng, destinationLatLng);
 	map.fitBounds(panFlightPlan);
 	//map.panToBounds(panFlightPlan);
 	//map.setZoom(10);
@@ -604,8 +604,8 @@ function updatePosition() {
 			"data",
 			function(data) {
 				if ($.isEmptyObject(data)) {
-					showError("Listening at X-Plane's UDP traffic port 49003. "
-							+ "Please check the settings at the X-Plane's Net Connections menu.");
+					/*showError("Listening at X-Plane's UDP traffic port 49003. "
+							+ "Please check the settings at the X-Plane's Net Connections menu.");*/
 				}
 				// delete all absent planes
 				for ( var ip in planeList) {
@@ -847,6 +847,8 @@ function toggleFlightPanel() {
 	}
 }
 function hideFlightPanel() {
+	document.cookie=$('#boxFlightPlan').val();
+	console.log("(saving) planSaved=" + document.cookie);
 	$('#panel-fp').hide(500);
 	$('#flightplan-help').hide(300);
 	$('#flightplan-info').hide(300);
@@ -854,6 +856,11 @@ function hideFlightPanel() {
 }
 
 function showFlightPanel() {
+	var planSaved = document.cookie;
+	console.log("planSaved=" + document.cookie);
+	if ( planSaved != "" ) {
+		$('#boxFlightPlan').val(planSaved);
+	}
 	$('#panel-fp').show(500);
 	$('#flightplan-help').show(300);
 	$('#flightplan-info').show(300);

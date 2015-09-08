@@ -105,12 +105,13 @@ html, body, #map-canvas {
 	border: 1px solid #999;
 	font-size: 12px;
 	font-weight: 500;
-	background-color: rgba(255,255,255,0.70);
 	border-radius: 2px;
 	padding: 5px;
 	cursor: pointer;
 	border-radius: 5px;
 	box-shadow: 4px 4px 4px 0px rgba(50, 50, 50, 0.75);
+	background-color: rgba(255,255,255,0.70);
+	color: #000;
 }
 #flightplan-button.down {
 	background-color: rgba(0,0,0,0.70);

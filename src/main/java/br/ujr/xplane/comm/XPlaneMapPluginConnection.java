@@ -22,19 +22,6 @@ import br.ujr.xplane.comm.message.DATAMessage;
 @SuppressWarnings("unused")
 public class XPlaneMapPluginConnection extends DaemonThread implements XPlaneMapPluginListener {
 
-	/*
-	 * "sim/cockpit/radios/nav1_has_dme"; "sim/cockpit/radios/nav1_freq_hz";
-	 * "sim/cockpit2/radios/indicators/nav1_dme_distance_nm";
-	 * "sim/cockpit2/radios/indicators/nav1_dme_time_min";
-	 * "sim/cockpit/radios/nav2_has_dme"; "sim/cockpit/radios/nav2_freq_hz";
-	 * "sim/cockpit2/radios/indicators/nav2_dme_distance_nm";
-	 * "sim/cockpit2/radios/indicators/nav2_dme_time_min";
-	 * "sim/cockpit2/gauges/indicators/altitude_ft_pilot";
-	 * "sim/cockpit2/gauges/indicators/airspeed_kts_pilot";
-	 * "sim/cockpit/radios/gps_dme_dist_m";
-	 * "sim/cockpit/radios/gps_dme_time_secs";
-	 */
-
 	public static Logger					logger		= LoggerFactory.getLogger(XPlaneMapPluginConnection.class);
 
 	private int								port;
