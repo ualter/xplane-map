@@ -15,14 +15,11 @@
 		</encoder>
 	</appender>
 
-	<logger name="br.ujr.xplane.map.fmsdata" level="INFO">
-	    <appender-ref ref="STDOUT" />
-	</logger>
 	<logger name="br.ujr.xplane" level="INFO">
 		<appender-ref ref="STDOUT" />
 	</logger>
-	<root level="debug">
+	<!-- <root level="debug">
 		<appender-ref ref="STDOUT" />
-	</root>
+	</root> -->
 	
 </configuration>

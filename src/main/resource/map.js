@@ -14,7 +14,7 @@ var mapOptions = {
 		lat : 0,
 		lng : 0
 	},
-	zoom : 8,
+	zoom : 9,
 	mapTypeId : google.maps.MapTypeId.TERRAIN,
 	center : posClient
 };
@@ -776,7 +776,7 @@ function updatePosition() {
 			})
 	.error(
 			function() {
-				showError('Ops! No communication with the server.')
+				showError('Ops! Mayday! Mayday! Java Server is down!!!')
 			});
 
 }
