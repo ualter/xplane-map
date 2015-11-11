@@ -1,0 +1,1 @@
+start java -cp "xplane-map-1.0.jar;lib/*" br.ujr.xplane.map.MainXPlaneMap

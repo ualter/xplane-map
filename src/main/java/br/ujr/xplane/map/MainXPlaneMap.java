@@ -1,17 +1,6 @@
 package br.ujr.xplane.map;
 
 import static br.ujr.xplane.comm.XPlaneMapPluginData.*;
-import static br.ujr.xplane.comm.XPlaneMapPluginData.LATITUDE;
-import static br.ujr.xplane.comm.XPlaneMapPluginData.LONGITUDE;
-import static br.ujr.xplane.comm.XPlaneMapPluginData.FUEL_QUANTITY;
-import static br.ujr.xplane.comm.XPlaneMapPluginData.AIRSPEED;
-import static br.ujr.xplane.comm.XPlaneMapPluginData.DESTINATION;
-import static br.ujr.xplane.comm.XPlaneMapPluginData.ALTITUDE;
-import static br.ujr.xplane.comm.XPlaneMapPluginData.BAROMETER;
-import static br.ujr.xplane.comm.XPlaneMapPluginData.COMPASS_HEADING;
-import static br.ujr.xplane.comm.XPlaneMapPluginData.GAME_PAUSED;
-import static br.ujr.xplane.comm.XPlaneMapPluginData.NAV1_FREQUENCY;
-import static br.ujr.xplane.comm.XPlaneMapPluginData.NAV2_FREQUENCY;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -49,6 +38,7 @@ import br.ujr.xplane.map.fmsdata.Airport;
 import br.ujr.xplane.map.fmsdata.FMSDataManager;
 import br.ujr.xplane.map.fmsdata.Fix;
 import br.ujr.xplane.map.fmsdata.Navaid;
+import br.ujr.xplane.map.fmsdata.Utils;
 import br.ujr.xplane.map.fmsdata.flightplan.FlightPlan;
 import br.ujr.xplane.map.fmsdata.flightplan.FlightPlanLoadMessages;
 
@@ -73,20 +63,24 @@ public class MainXPlaneMap implements UDPMessageListenerXPlaneDataInput, XPlaneM
 	private String						valueBuffer;
 
 	public static void main(String[] args) {
-
-		new MainXPlaneMap();
-
-		/*
-		 * if (Desktop.isDesktopSupported()) { Desktop desktop =
-		 * Desktop.getDesktop(); try { desktop.browse(new URI(url)); } catch
-		 * (Exception e) { e.printStackTrace(); } } else { Runtime runtime =
-		 * Runtime.getRuntime(); try { runtime.exec("xdg-open " + url); } catch
-		 * (IOException e) { e.printStackTrace(); } }
-		 */
-
+		boolean IN_DEV = false;
+		if ( args.length > 0 ) {
+			for(String p : args) {
+				if ( p.contains("IN_DEV") ) {
+					String[] pair = p.split("=");
+					if ( pair.length < 2 ) {
+						System.out.println("Wrong arguments! There's no need for them at this moment. \nBye!");
+						System.exit(0);
+					}
+					IN_DEV = Boolean.parseBoolean(pair[1]);
+				}
+			}
+		}
+		new MainXPlaneMap(IN_DEV);
 	}
 
-	public MainXPlaneMap() {
+	public MainXPlaneMap(boolean inDevelopment) {
+		Utils.IN_DEVELOPMENT = inDevelopment;
 		this.init();
 		this.registerDATAMessages(dataToCapture);
 	}
@@ -117,6 +111,12 @@ public class MainXPlaneMap implements UDPMessageListenerXPlaneDataInput, XPlaneM
 			pluginConnection = new XPlaneMapPluginConnection(pluginPort);
 			pluginConnection.addXPlaneMapPluginListener(this);
 			pluginConnection.start();
+			
+			try {
+				Thread.currentThread().sleep(2000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 
 			logger.info("Map is accessible by the: " + url);
 		} catch (IOException e) {

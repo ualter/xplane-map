@@ -1,0 +1,14 @@
+<project default="copy-artifacts" basedir="." name="xplane-map-tasks">
+
+	<target name="copy-artifacts">
+		<property file="tasks.properties" />
+		<echo message="Copying artifact to my execution folder" />
+		<copy file="${file_jar}" todir="${mydir}" />
+		<copy file="${file_bat}" todir="${mydir}" />
+		<!-- <mkdir dir="${mydir}/navdata"/> -->
+		<copy todir="${mydir}/navdata">
+			<fileset dir="${navdata}" />
+		</copy>
+	</target>
+
+</project>

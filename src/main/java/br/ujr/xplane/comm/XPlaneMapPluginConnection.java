@@ -94,7 +94,7 @@ public class XPlaneMapPluginConnection extends DaemonThread implements XPlaneMap
 
 			} catch (SocketTimeoutException ste) {
 				if (this.has_reception == true) {
-					logger.info("X-Plane Map Plugin: No data reception");
+					//logger.info("X-Plane Map Plugin: No data reception");
 					this.has_reception = false;
 				}
 			} catch (Exception e) {

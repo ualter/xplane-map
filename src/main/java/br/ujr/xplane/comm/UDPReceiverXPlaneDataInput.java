@@ -60,7 +60,7 @@ public class UDPReceiverXPlaneDataInput extends DaemonThread  {
 
 			} catch (SocketTimeoutException ste) {
 				if (this.has_reception == true) {
-					logger.info("X-Plane DataInput: No UDP reception");
+					//logger.info("X-Plane DataInput: No UDP reception");
 					this.has_reception = false;
 				}
 			} catch (Exception e) {

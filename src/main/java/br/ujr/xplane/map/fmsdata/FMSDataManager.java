@@ -2,21 +2,24 @@ package br.ujr.xplane.map.fmsdata;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import javax.print.DocFlavor.URL;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import br.ujr.xplane.map.fmsdata.Navaid.NavaidType;
-import ch.qos.logback.classic.Level;
 
 public class FMSDataManager {
 
@@ -44,8 +47,8 @@ public class FMSDataManager {
 	private void loadNavaids() {
 		BufferedReader fileReader = null;
 		try {
-
-			fileReader = new BufferedReader(new FileReader(new File(Utils.NAVAID_SOURCE)));
+			
+			fileReader = Utils.getNavaidSourceReader();
 			String line = fileReader.readLine();
 
 			int count = 0;
@@ -107,7 +110,7 @@ public class FMSDataManager {
 		BufferedReader fileReader = null;
 		try {
 
-			fileReader = new BufferedReader(new FileReader(new File(Utils.AIRPORT_SOURCE)));
+			fileReader = Utils.getAirportSourceReader();
 			String line = fileReader.readLine();
 
 			int count = 0;
@@ -191,7 +194,7 @@ public class FMSDataManager {
 		BufferedReader fileReader = null;
 		try {
 
-			fileReader = new BufferedReader(new FileReader(new File(Utils.WAYPOINTS_SOURCE)));
+			fileReader = Utils.getWaypointsSourceReader();
 			String line = fileReader.readLine();
 
 			int count = 0;
@@ -239,7 +242,7 @@ public class FMSDataManager {
 		BufferedReader fileReader = null;
 		try {
 
-			fileReader = new BufferedReader(new FileReader(new File(Utils.AIRWAYS_SOURCE)));
+			fileReader = Utils.getAirwaysSourceReader();
 			String line = fileReader.readLine();
 
 			int count = 0;
