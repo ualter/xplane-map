@@ -1,5 +1,7 @@
 package br.ujr.xplane.map.fmsdata;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,10 +54,26 @@ public class Coordinate {
 	}
 	
 	public int convertCoordinateToInt() {
+		
 		String strLatitude = String.valueOf(this.latitude).replaceAll("\\.", "");
 		String strLongitude = String.valueOf(this.longitude).replaceAll("\\.", "");
 		
-		return Integer.parseInt(strLatitude) + Integer.parseInt(strLongitude);
+		if ( strLatitude.contains("E") || strLatitude.contains("e") ) {
+			BigDecimal bd = new BigDecimal(strLatitude).setScale(6,RoundingMode.DOWN);
+			strLatitude = bd.toPlainString().replaceAll("\\.", "");
+		}
+		if ( strLongitude.contains("E") || strLongitude.contains("e") ) {
+			BigDecimal bd = new BigDecimal(strLongitude).setScale(6,RoundingMode.DOWN);
+			strLongitude = bd.toPlainString().replaceAll("\\.", "");
+		}
+		
+		int result = 0;
+		try {
+			result = Integer.parseInt(strLatitude) + Integer.parseInt(strLongitude);
+		} catch (NumberFormatException e) {
+			throw e;
+		}
+		return result;
 	}
 	
 	@Override

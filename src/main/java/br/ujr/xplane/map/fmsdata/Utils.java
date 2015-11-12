@@ -51,15 +51,16 @@ public class Utils {
 	}
 
 	public static String parseFreq(String vlr) {
-		if (vlr.length() > 5) {
+		/*if (vlr.length() > 5) {
 			return vlr.substring(0, 3) + "." + vlr.substring(3, 5);
 		} else {
 			return "---";
-		}
+		}*/
+		return vlr;
 	}
 
 	public static float parseCoord(String vlr) {
-		if (vlr.length() > 6) {
+		/*if (vlr.length() > 6) {
 			int start = vlr.length() - 6;
 			String decimal = vlr.substring(start);
 			String integer = vlr.substring(0, vlr.indexOf(decimal));
@@ -67,7 +68,8 @@ public class Utils {
 			return Float.parseFloat(coord);
 		} else {
 			return Float.parseFloat(vlr);
-		}
+		}*/
+		return Float.parseFloat(vlr);
 	}
 
 	public static Integer[] toIntArray(String data) {

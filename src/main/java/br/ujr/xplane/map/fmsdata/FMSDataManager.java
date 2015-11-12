@@ -1,19 +1,16 @@
 package br.ujr.xplane.map.fmsdata;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
-import java.nio.file.Paths;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
-
-import javax.print.DocFlavor.URL;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -54,8 +51,8 @@ public class FMSDataManager {
 			int count = 0;
 
 			while (line != null) {
-				String[] columns = line.split("\\|");
-
+				String[] columns = line.split(",");
+				
 				String id = columns[0];
 				String desc = columns[1];
 				String freq = Utils.parseFreq(columns[2]);
@@ -391,9 +388,17 @@ public class FMSDataManager {
 		return result;
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws Exception {
+		Utils.IN_DEVELOPMENT = true;
 		FMSDataManager fmsDataManager = new FMSDataManager();
-
+		
+		/*String ss = "108.000333";
+		float f = Float.parseFloat(ss);
+		System.out.println(f);
+		
+		BigDecimal bd = new BigDecimal(ss).setScale(6,RoundingMode.DOWN);
+		System.out.println( bd.toPlainString() );*/
+		
 		/*
 		 * Airport sp = fmsDataManager.getAirports().get("SBSP"); Airport rj =
 		 * fmsDataManager.getAirports().get("SBRJ"); Fix lodog =
