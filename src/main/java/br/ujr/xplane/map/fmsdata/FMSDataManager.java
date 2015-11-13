@@ -403,7 +403,6 @@ public class FMSDataManager {
 
 		long timeIn = System.currentTimeMillis();
 
-		Utils.IN_DEVELOPMENT = true;
 		FMSDataManager fmsDataManager = new FMSDataManager();
 
 		Airport sp = fmsDataManager.getAirports().get("SBSP");
