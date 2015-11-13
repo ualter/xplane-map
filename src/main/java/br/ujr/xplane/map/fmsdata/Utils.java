@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 
 public class Utils {
 
-	public static boolean	IN_DEVELOPMENT		= false;
+	public static String	PATH_NAVDATA		= null;
 	public static Logger	logger				= LoggerFactory.getLogger(Utils.class);
 	public static String	NAVAID_SOURCE		= "Navaids.txt";
 	public static String	AIRPORT_SOURCE		= "Airports.txt";
@@ -21,8 +21,9 @@ public class Utils {
 	public static BufferedReader getSourceReader(String file) {
 		InputStream fis;
 		String path = "./navdata/" + file;
-		if (IN_DEVELOPMENT) {
-			path = "/Users/Ualter/Developer/xplane-map/src/main/resources/navdata/" + file;
+		if ( PATH_NAVDATA != null ) {
+			path = PATH_NAVDATA + file;
+			// "/Users/Ualter/Developer/xplane-map/src/main/resources/navdata/"
 		}
 		try {
 			fis = new FileInputStream(path);
