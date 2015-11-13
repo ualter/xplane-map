@@ -63,24 +63,24 @@ public class MainXPlaneMap implements UDPMessageListenerXPlaneDataInput, XPlaneM
 	private String						valueBuffer;
 
 	public static void main(String[] args) {
-		boolean IN_DEV = false;
+		String pathNavdata = null;
 		if ( args.length > 0 ) {
 			for(String p : args) {
-				if ( p.contains("IN_DEV") ) {
+				if ( p.contains("PATH_NAVDATA") ) {
 					String[] pair = p.split("=");
 					if ( pair.length < 2 ) {
 						System.out.println("Wrong arguments! There's no need for them at this moment. \nBye!");
 						System.exit(0);
 					}
-					IN_DEV = Boolean.parseBoolean(pair[1]);
+					pathNavdata = pair[1];
 				}
 			}
 		}
-		new MainXPlaneMap(IN_DEV);
+		new MainXPlaneMap(pathNavdata);
 	}
 
-	public MainXPlaneMap(boolean inDevelopment) {
-		Utils.IN_DEVELOPMENT = inDevelopment;
+	public MainXPlaneMap(String pathNavData) {
+		Utils.PATH_NAVDATA = pathNavData;
 		this.init();
 		this.registerDATAMessages(dataToCapture);
 	}
