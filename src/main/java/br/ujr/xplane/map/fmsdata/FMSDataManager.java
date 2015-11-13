@@ -3,9 +3,6 @@ package br.ujr.xplane.map.fmsdata;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -20,39 +17,49 @@ import br.ujr.xplane.map.fmsdata.Navaid.NavaidType;
 
 public class FMSDataManager {
 
-	public static Logger			logger		= LoggerFactory.getLogger(FMSDataManager.class);
-	private Map<Coordinate, Place>	coordinates	= new HashMap<Coordinate, Place>();
-	private Map<String, Navaid>		navaids		= new HashMap<String, Navaid>();
-	private Map<String, Airport>	airports	= new HashMap<String, Airport>();
-	private Map<String, Fix>		fixs		= new HashMap<String, Fix>();
-	private Map<String, Airway>		airways		= new HashMap<String, Airway>();
+	public static Logger			logger				= LoggerFactory.getLogger(FMSDataManager.class);
+	private static String			FIELDS_SEPARATOR	= ",";
+	private Map<Coordinate, Place>	coordinates			= new HashMap<Coordinate, Place>();
+	private Map<String, Navaid>		navaids				= new HashMap<String, Navaid>();
+	private Map<String, Airport>	airports			= new HashMap<String, Airport>();
+	private Map<String, Fix>		fixs				= new HashMap<String, Fix>();
+	private Map<String, Airway>		airways				= new HashMap<String, Airway>();
 
 	public FMSDataManager() {
 		super();
-		/*ch.qos.logback.classic.Logger root = (ch.qos.logback.classic.Logger) org.slf4j.LoggerFactory.getLogger(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME);
-		root.setLevel(Level.INFO);*/
+		/*
+		 * ch.qos.logback.classic.Logger root = (ch.qos.logback.classic.Logger)
+		 * org.slf4j.LoggerFactory.getLogger(ch.qos.logback.classic.Logger.
+		 * ROOT_LOGGER_NAME); root.setLevel(Level.INFO);
+		 */
 		init();
 	}
 
 	public void init() {
+		logger.info("Start load Navdata");
+		logger.info("Loading NAVAIDS");
 		loadNavaids();
+		logger.info("Loading AIRPORTS");
 		loadAirports();
+		logger.info("Loading WAYPOINTS");
 		loadWaypoints();
+		logger.info("Loading AIRWAYS");
 		loadAirways();
+		logger.info("Finished load Navdata");
 	}
 
 	private void loadNavaids() {
 		BufferedReader fileReader = null;
 		try {
-			
+
 			fileReader = Utils.getNavaidSourceReader();
 			String line = fileReader.readLine();
 
 			int count = 0;
 
 			while (line != null) {
-				String[] columns = line.split(",");
-				
+				String[] columns = line.split(FMSDataManager.FIELDS_SEPARATOR);
+
 				String id = columns[0];
 				String desc = columns[1];
 				String freq = Utils.parseFreq(columns[2]);
@@ -114,11 +121,10 @@ public class FMSDataManager {
 			Airport airport = null;
 
 			while (line != null) {
-
 				if (count > 1) {
 					if (StringUtils.isNotBlank(line)) {
 
-						String[] columns = line.split("\\|");
+						String[] columns = line.split(FMSDataManager.FIELDS_SEPARATOR);
 						String type = columns[0];
 
 						if ("A".equalsIgnoreCase(type)) {
@@ -137,10 +143,13 @@ public class FMSDataManager {
 							String number = columns[1];
 							String heading = columns[2];
 							String length = columns[3];
-							String frequency = columns[5];
-							String latitude = columns[7];
-							String longitude = columns[8];
-							String elevation = columns[9];
+							// 4 = Width
+							// 5 = ILS (1 or 0)
+							String frequency = columns[6];
+							// 7 = CRS (Course Degree)
+							String latitude = columns[8];
+							String longitude = columns[9];
+							String elevation = columns[10];
 
 							Airport.Runway runway = new Airport.Runway();
 							runway.setNumber(number);
@@ -197,23 +206,25 @@ public class FMSDataManager {
 			int count = 0;
 
 			while (line != null) {
-				String[] columns = line.split("\\|");
+				String[] columns = line.split(FMSDataManager.FIELDS_SEPARATOR);
 
 				String id = columns[0];
-				float lat = Utils.parseCoord(columns[1]);
-				float lon = Utils.parseCoord(columns[2]);
+				if (StringUtils.isNotBlank(id)) {
+					float lat = Utils.parseCoord(columns[1]);
+					float lon = Utils.parseCoord(columns[2]);
 
-				Fix fix = new Fix(0, id, lat, lon);
+					Fix fix = new Fix(0, id, lat, lon);
 
-				while (this.fixs.containsKey(fix.getKey())) {
-					fix.setIndex(fix.getIndex() + 1);
+					while (this.fixs.containsKey(fix.getKey())) {
+						fix.setIndex(fix.getIndex() + 1);
+					}
+
+					this.fixs.put(fix.getKey(), fix);
+					savePlace(fix);
+
+					count++;
+					logger.debug("Loading Waypoint: {}", fix);
 				}
-
-				this.fixs.put(fix.getKey(), fix);
-				savePlace(fix);
-
-				count++;
-				logger.debug("Loading Waypoint: {}", fix);
 
 				line = fileReader.readLine();
 			}
@@ -250,7 +261,7 @@ public class FMSDataManager {
 
 				if (StringUtils.isNotBlank(line)) {
 
-					String[] columns = line.split("\\|");
+					String[] columns = line.split(FMSDataManager.FIELDS_SEPARATOR);
 					String type = columns[0];
 
 					if ("A".equalsIgnoreCase(type)) {
@@ -351,72 +362,72 @@ public class FMSDataManager {
 		Coordinate coordinate = new Coordinate(place.getLatitude(), place.getLongitude());
 		this.coordinates.put(coordinate, place);
 	}
-	
-	public Map<String,Navaid> searchNavaidStartsWith(String keySearched) {
-		
-		Map<String,Navaid> result = new LinkedHashMap<String, Navaid>();
-		
+
+	public Map<String, Navaid> searchNavaidStartsWith(String keySearched) {
+
+		Map<String, Navaid> result = new LinkedHashMap<String, Navaid>();
+
 		TreeMap<String, Navaid> subset = new TreeMap<String, Navaid>(this.getNavaids());
 		SortedMap<String, Navaid> found = subset.tailMap(keySearched);
-		
+
 		for (String key : found.keySet()) {
-			if ( key.startsWith(keySearched) ) {
-				result.put(key,found.get(key));
+			if (key.startsWith(keySearched)) {
+				result.put(key, found.get(key));
 			} else {
 				break;
 			}
 		}
-		
+
 		return result;
 	}
-	
-	public Map<String,Fix> searchFixStartsWith(String keySearched) {
-		
-		Map<String,Fix> result = new LinkedHashMap<String,Fix>();
-		
+
+	public Map<String, Fix> searchFixStartsWith(String keySearched) {
+
+		Map<String, Fix> result = new LinkedHashMap<String, Fix>();
+
 		TreeMap<String, Fix> subset = new TreeMap<String, Fix>(this.getFixes());
 		SortedMap<String, Fix> found = subset.tailMap(keySearched);
-		
+
 		for (String key : found.keySet()) {
-			if ( key.startsWith(keySearched) ) {
-				result.put(key,found.get(key));
+			if (key.startsWith(keySearched)) {
+				result.put(key, found.get(key));
 			} else {
 				break;
 			}
 		}
-		
+
 		return result;
 	}
 
 	public static void main(String[] args) throws Exception {
+
+		long timeIn = System.currentTimeMillis();
+
 		Utils.IN_DEVELOPMENT = true;
 		FMSDataManager fmsDataManager = new FMSDataManager();
-		
-		/*String ss = "108.000333";
-		float f = Float.parseFloat(ss);
-		System.out.println(f);
-		
-		BigDecimal bd = new BigDecimal(ss).setScale(6,RoundingMode.DOWN);
-		System.out.println( bd.toPlainString() );*/
-		
-		/*
-		 * Airport sp = fmsDataManager.getAirports().get("SBSP"); Airport rj =
-		 * fmsDataManager.getAirports().get("SBRJ"); Fix lodog =
-		 * fmsDataManager.getFixes().get("LODOG-0"); Fix xokix =
-		 * fmsDataManager.getFixes().get("XOKIX-0");
-		 */
 
-		Map<String,Navaid> listNavaid = fmsDataManager.searchNavaidStartsWith("KEVUN");
-		for(String k : listNavaid.keySet()) {
+		Airport sp = fmsDataManager.getAirports().get("SBSP");
+		Airport rj = fmsDataManager.getAirports().get("SBRJ");
+		Fix lodog = fmsDataManager.getFixes().get("LODOG-0");
+		Fix xokix = fmsDataManager.getFixes().get("XOKIX-0");
+
+		Map<String, Navaid> listNavaid = fmsDataManager.searchNavaidStartsWith("KEVUN");
+		for (String k : listNavaid.keySet()) {
 			Navaid n = listNavaid.get(k);
 			System.out.println(k + " = " + n.getCode() + "," + n.getLatitude() + "," + n.getLongitude());
 		}
-		
-		Map<String,Fix> listFix = fmsDataManager.searchFixStartsWith("KEVUN");
-		for(String k : listFix.keySet()) {
+
+		Map<String, Fix> listFix = fmsDataManager.searchFixStartsWith("KEVUN");
+		for (String k : listFix.keySet()) {
 			Fix n = listFix.get(k);
 			System.out.println(k + " = " + n.getCode() + "," + n.getLatitude() + "," + n.getLongitude());
 		}
+
+		System.out.println("FIM");
+
+		long timeOut = System.currentTimeMillis();
+
+		System.out.println((timeOut - timeIn));
 
 	}
 

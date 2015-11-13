@@ -119,6 +119,8 @@ public class MainXPlaneMap implements UDPMessageListenerXPlaneDataInput, XPlaneM
 			}
 
 			logger.info("Map is accessible by the: " + url);
+			logger.info("Enjoy! ;-)");
+			
 		} catch (IOException e) {
 			logger.error(e.getMessage(), e);
 			throw new RuntimeException(e);
